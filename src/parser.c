@@ -77,7 +77,7 @@ static Expr* parse_term(AST* ast) {
   Token tok;
   while ((tok = lexer_peek()).t == TOK_ADD || tok.t == TOK_SUB) {
     int op = parse_binop();
-    Expr* right = parse_term(ast);
+    Expr* right = parse_factor(ast);
     Expr* new_ret = make_expr(ast, EXPR_BINOP, ret->start,
                               (right->start - ret->start) + right->sz);
     new_ret->data.binop.left = ret;
@@ -88,12 +88,50 @@ static Expr* parse_term(AST* ast) {
   return ret;
 }
 
-static Expr* parse_expr(AST* ast) { return parse_term(ast); }
+static inline Expr* parse_expr(AST* ast) { return parse_term(ast); }
+
+static void parse_let(AST* ast, Stmt* stmt, int mut) {
+  lexer_next();
+  stmt->t = STMT_LET;
+  Token var_name = expect(TOK_SYM, "expected variable name");
+  expect(TOK_EQ, "expected '='");
+  stmt->data.let.value = parse_expr(ast);
+  expect(TOK_SEMICOLON, "expected ';'");
+  stmt->data.let.name = var_name.start;
+  stmt->data.let.sz = var_name.sz;
+  stmt->data.let.mut = mut;
+}
+
+static void parse_expr_stmt(AST* ast, Stmt* stmt) {
+  stmt->t = STMT_EXPR;
+  stmt->data.expr = parse_expr(ast);
+  expect(TOK_SEMICOLON, "expected ';'");
+}
+
+void parse_block(Block* block, AST* ast) {
+  vector_init(&block->stmts, sizeof(Stmt), &ast->pool);
+  while (1) {
+    switch (lexer_peek().t) {
+      case TOK_LET:
+        parse_let(ast, vector_alloc(&block->stmts, &ast->pool), 0);
+        break;
+      case TOK_MUT:
+        parse_let(ast, vector_alloc(&block->stmts, &ast->pool), 1);
+        break;
+      /* TODO: Replace this with '}' for proper blocks */
+      case TOK_EOF:
+        return;
+      default:
+        parse_expr_stmt(ast, vector_alloc(&block->stmts, &ast->pool));
+        break;
+    }
+  }
+}
 
 AST parse_ast() {
   AST ret;
 
   ast_init(&ret);
-  ret.expr = parse_expr(&ret);
+  parse_block(&ret.block, &ret);
   return ret;
 }

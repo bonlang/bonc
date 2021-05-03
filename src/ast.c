@@ -37,6 +37,9 @@ static void expr_dump(FILE* file, Expr* expr, int indent) {
     case EXPR_INT:
       fprintf(file, "Expr_Int: %.*s\n", (int)expr->sz, (char*)expr->start);
       break;
+    case EXPR_VAR:
+      fprintf(file, "Expr_Var: %.*s\n", (int)expr->sz, (char*)expr->start);
+      break;
     case EXPR_BINOP:
       fprintf(file, "Expr_Binop: %s\n", str_of_binop(expr->data.binop.op));
       expr_dump(file, expr->data.binop.left, indent + 1);

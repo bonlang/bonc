@@ -28,6 +28,8 @@ static Expr* parse_primary(AST* ast) {
   switch (tok.t) {
     case TOK_INT:
       return make_expr(ast, EXPR_INT, tok.start, tok.sz);
+    case TOK_SYM:
+      return make_expr(ast, EXPR_VAR, tok.start, tok.sz);
     case TOK_LPAREN: {
       Expr* ret = parse_expr(ast);
       expect(TOK_RPAREN, "expected ')'");

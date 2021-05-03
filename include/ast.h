@@ -16,6 +16,7 @@ enum {
 
 enum {
   EXPR_INT,
+  EXPR_VAR,
   EXPR_BINOP,
 };
 

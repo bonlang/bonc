@@ -2,6 +2,7 @@ project('comp', 'c')
 
 src = [
   'src/helper.c',
+  'src/lexer.c',
   'src/comp.c',
 ]
 

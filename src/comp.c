@@ -8,6 +8,7 @@
 #include <sys/types.h>
 
 #include "helper.h"
+#include "lexer.h"
 
 int main(int argc, char* argv[]) {
   int c, invalid_args = 0;
@@ -59,7 +60,12 @@ int main(int argc, char* argv[]) {
     log_err_final("unable to get contents of '%s'", in_filename);
   }
 
-  printf("%.*s", (int)in_size, (const char*)in_file);
+  lexer_init(in_file, in_size);
+  Token tok;
+  while ((tok = lexer_next()).t != TOK_EOF) {
+    printf("'%.*s' ", (int)tok.sz, (char*)tok.start);
+  }
+  printf("\n");
 
   munmap((uint8_t*)in_file, in_size);
   return EXIT_SUCCESS;

@@ -34,9 +34,9 @@ int main(int argc, char* argv[]) {
     exit(EXIT_FAILURE);
   }
   if (!in_filename) {
-    log_err("no input file specified");
-    exit(EXIT_FAILURE);
+    log_err_final("no input file specified");
   }
   printf("%s\n", in_filename);
+
   return EXIT_SUCCESS;
 }

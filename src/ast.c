@@ -12,7 +12,7 @@ void ast_init(AST* ast) { mempool_init(&ast->pool); }
 
 static void print_indent(FILE* file, int indent) {
   for (; indent > 0; indent--) {
-    fprintf(file, "\t");
+    fprintf(file, "    ");
   }
 }
 
@@ -35,10 +35,10 @@ static void expr_dump(FILE* file, Expr* expr, int indent) {
   print_indent(file, indent);
   switch (expr->t) {
     case EXPR_INT:
-      fprintf(file, "%.*s\n", (int)expr->sz, (char*)expr->start);
+      fprintf(file, "Expr_Int: %.*s\n", (int)expr->sz, (char*)expr->start);
       break;
     case EXPR_BINOP:
-      fprintf(file, "%s\n", str_of_binop(expr->data.binop.op));
+      fprintf(file, "Expr_Binop: %s\n", str_of_binop(expr->data.binop.op));
       expr_dump(file, expr->data.binop.left, indent + 1);
       expr_dump(file, expr->data.binop.right, indent + 1);
       break;

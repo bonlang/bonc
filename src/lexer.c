@@ -108,6 +108,8 @@ static Token lexer_fetch() {
       return make_token(TOK_MUL);
     case '/':
       return make_token(TOK_DIV);
+    case '=':
+      return make_token(TOK_EQ);
     case '(':
       return make_token(TOK_LPAREN);
     case ')':

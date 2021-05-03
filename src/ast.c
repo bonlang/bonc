@@ -8,7 +8,10 @@ void ast_deinit(AST* ast) {
   ast->expr = NULL;
 }
 
-void ast_init(AST* ast) { mempool_init(&ast->pool); }
+void ast_init(AST* ast) {
+  mempool_init(&ast->pool);
+  scope_init(&ast->global, &ast->pool, NULL);
+}
 
 static void print_indent(FILE* file, int indent) {
   for (; indent > 0; indent--) {

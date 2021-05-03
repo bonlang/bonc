@@ -6,6 +6,7 @@
 #include <stdio.h>
 
 #include "helper.h"
+#include "symtable.h"
 
 enum {
   BINOP_ADD,
@@ -18,6 +19,7 @@ enum {
   EXPR_INT,
   EXPR_VAR,
   EXPR_BINOP,
+  EXPR_DEC,
 };
 
 typedef struct Expr {
@@ -31,6 +33,12 @@ typedef struct Expr {
       struct Expr* right;
       int op;
     } binop;
+    struct {
+      const char* name;
+      size_t sz;
+      int mut;
+      struct Expr* expr;
+    } dec;
   } data;
 
 } Expr;
@@ -38,6 +46,7 @@ typedef struct Expr {
 typedef struct {
   MemPool pool; /* used to allocate structures that belong to this AST */
   Expr* expr;
+  Scope global;
 } AST;
 
 void ast_deinit(AST* ast);

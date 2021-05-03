@@ -22,7 +22,7 @@ int main(int argc, char* argv[]) {
         break;
       case '?':
         if (optopt == 'i') {
-          log_err("expected filename after '-i'");
+          log_err_final("expected filename after '-i'");
           break;
         }
         log_err("unknown argument '-%c'", optopt);

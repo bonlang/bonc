@@ -3,10 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-void ast_deinit(AST* ast) {
-  mempool_deinit(&ast->pool);
-  ast->expr = NULL;
-}
+void ast_deinit(AST* ast) { mempool_deinit(&ast->pool); }
 
 void ast_init(AST* ast) {
   mempool_init(&ast->pool);
@@ -50,4 +47,24 @@ static void expr_dump(FILE* file, Expr* expr, int indent) {
       break;
   }
 }
-void ast_dump(FILE* file, AST* ast) { expr_dump(file, ast->expr, 0); }
+
+static void stmt_dump(FILE* file, Stmt* stmt) {
+  switch (stmt->t) {
+    case STMT_LET:
+      fprintf(file, "Stmt_Let: %.*s\n", (int)stmt->data.let.sz,
+              (char*)stmt->data.let.name);
+      expr_dump(file, stmt->data.let.value, 1);
+      break;
+    case STMT_EXPR:
+      fprintf(file, "Stmt_Expr:\n");
+      expr_dump(file, stmt->data.expr, 1);
+      break;
+  }
+}
+
+void ast_dump(FILE* file, AST* ast) {
+  for (size_t i = 0; i < ast->block.stmts.items; i++) {
+    stmt_dump(file, vector_idx(&ast->block.stmts, i));
+  }
+}
+

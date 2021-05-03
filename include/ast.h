@@ -33,19 +33,37 @@ typedef struct Expr {
       struct Expr* right;
       int op;
     } binop;
-    struct {
-      const char* name;
-      size_t sz;
-      int mut;
-      struct Expr* expr;
-    } dec;
   } data;
 
 } Expr;
 
+enum {
+  STMT_LET,
+  STMT_EXPR,
+};
+
+typedef struct {
+  int t;
+
+  union {
+    struct {
+      const uint8_t* name;
+      size_t sz;
+      int mut;
+      Expr* value; /* null if variable is not initialized on declaration */
+    } let;
+
+    Expr* expr;
+  } data;
+} Stmt;
+
+typedef struct {
+  Vector stmts; /* Stmt */
+} Block;
+
 typedef struct {
   MemPool pool; /* used to allocate structures that belong to this AST */
-  Expr* expr;
+  Block block;
   Scope global;
 } AST;
 

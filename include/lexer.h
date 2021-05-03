@@ -20,6 +20,9 @@ enum {
   TOK_LBRACK,
   TOK_RBRACK,
 
+  /* punctuation */
+  TOK_SEMICOLON,
+
   /* literals/symbols */
   TOK_INT,
   TOK_SYM,

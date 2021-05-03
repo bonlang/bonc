@@ -122,6 +122,8 @@ static Token lexer_fetch() {
       return make_token(TOK_LBRACK);
     case ']':
       return make_token(TOK_RBRACK);
+    case ';':
+      return make_token(TOK_SEMICOLON);
   }
   log_err_final("unexpected char '%c'", c);
   return make_symbol(TOK_EOF); /* unreachable */

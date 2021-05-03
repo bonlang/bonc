@@ -97,11 +97,10 @@ static Token lexer_fetch() {
     case '+':
       return make_token(TOK_ADD);
     case '-':
-
       return make_token(TOK_SUB);
-    case '/':
-      return make_token(TOK_MUL);
     case '*':
+      return make_token(TOK_MUL);
+    case '/':
       return make_token(TOK_DIV);
   }
   log_err_final("unexpected char '%c'", c);

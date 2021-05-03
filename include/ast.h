@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdio.h>
 
 #include "helper.h"
 
@@ -38,4 +39,7 @@ typedef struct {
   Expr* expr;
 } AST;
 
+void ast_deinit(AST* ast);
+void ast_init(AST* ast);
+void ast_dump(FILE* file, AST* ast);
 #endif

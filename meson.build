@@ -2,7 +2,9 @@ project('comp', 'c')
 
 src = [
   'src/helper.c',
+  'src/ast.c',
   'src/lexer.c',
+  'src/parser.c',
   'src/comp.c',
 ]
 

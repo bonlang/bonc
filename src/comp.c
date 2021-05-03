@@ -9,6 +9,7 @@
 
 #include "helper.h"
 #include "lexer.h"
+#include "parser.h"
 
 int main(int argc, char* argv[]) {
   int c, invalid_args = 0;
@@ -61,11 +62,11 @@ int main(int argc, char* argv[]) {
   }
 
   lexer_init(in_file, in_size);
-  Token tok;
-  while ((tok = lexer_next()).t != TOK_EOF) {
-    printf("'%.*s' ", (int)tok.sz, (char*)tok.start);
-  }
-  printf("\n");
+
+  AST ast = parse_ast();
+  ast_dump(stdout, &ast);
+
+  ast_deinit(&ast);
 
   munmap((uint8_t*)in_file, in_size);
   return EXIT_SUCCESS;

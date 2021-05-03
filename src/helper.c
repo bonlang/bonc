@@ -56,6 +56,7 @@ void mempool_deinit(MemPool* pool) {
   if (munmap(pool->base, POOL_MAX_SZ) == -1) {
     log_internal_err("unable to close memory pool");
   }
+  pool->base = NULL;
 }
 
 static inline size_t size_needed(size_t requested) {

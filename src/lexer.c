@@ -2,23 +2,9 @@
 
 #include <ctype.h>
 #include <stdio.h>
+#include <string.h>
 
 #include "helper.h"
-
-#define DIGIT                                                           \
-  '0' : case '1' : case '2' : case '3' : case '4' : case '5' : case '6' \
-      : case '7' : case '8' : case '9'
-
-#define ALPHA                                                           \
-  'a' : case 'b' : case 'c' : case 'd' : case 'e' : case 'f' : case 'g' \
-      : case 'h' : case 'i' : case 'j' : case 'k' : case 'l' : case 'm' \
-      : case 'n' : case 'o' : case 'p' : case 'q' : case 'r' : case 's' \
-      : case 't' : case 'u' : case 'v' : case 'w' : case 'x' : case 'y' \
-      : case 'z' : case 'A' : case 'B' : case 'C' : case 'D' : case 'E' \
-      : case 'F' : case 'G' : case 'H' : case 'I' : case 'J' : case 'K' \
-      : case 'L' : case 'M' : case 'N' : case 'O' : case 'P' : case 'Q' \
-      : case 'R' : case 'S' : case 'T' : case 'U' : case 'V' : case 'W' \
-      : case 'X' : case 'Y' : case 'Z'
 
 struct {
   const uint8_t* buf;
@@ -66,12 +52,32 @@ static void skip_whitespace() {
   lex.start = lex.end;
 }
 
+static inline size_t cur_len() { return lex.end - lex.start; }
+
+static inline int match(int t, const char* name) {
+  if (strncmp((char*)name, (char*)lex.buf + lex.start, cur_len()) == 0) {
+    return t;
+  }
+  return TOK_SYM;
+}
+
+static int pick_symbol_type() {
+  switch (lex.buf[lex.start]) {
+    case 'm':
+      return match(TOK_MUT, "mut");
+    case 'l':
+      return match(TOK_LET, "let");
+    default:
+      return TOK_SYM;
+  }
+}
+
 static Token make_symbol() {
   int c;
   while (!is_eof() && (isalpha(c = peek_c()) || isdigit(c) || c == '_')) {
     next_c();
   }
-  return make_token(TOK_SYM);
+  return make_token(pick_symbol_type());
 }
 
 static Token make_int() {

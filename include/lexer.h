@@ -10,6 +10,7 @@ enum {
   TOK_SUB,
   TOK_MUL,
   TOK_DIV,
+  TOK_EQ,
 
   /* open/closers */
   TOK_LPAREN,
@@ -22,6 +23,10 @@ enum {
   /* literals/symbols */
   TOK_INT,
   TOK_SYM,
+
+  /* keywords */
+  TOK_LET,
+  TOK_MUT,
 
   /* misc. */
   TOK_EOF,

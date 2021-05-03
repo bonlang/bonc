@@ -89,14 +89,16 @@ void vector_init(Vector* vec, size_t it_sz, MemPool* pool) {
   vec->data = mempool_alloc(pool, it_sz * VEC_INIT_ALLOC);
 }
 
+void vector_resize(Vector* vec, MemPool* pool) {
+  uint8_t* new_data = mempool_alloc(pool, vec->alloc * vec->it_sz * 2);
+  memcpy(new_data, vec->data, vec->items * vec->it_sz);
+  vec->data = new_data;
+  vec->alloc *= 2;
+}
 void vector_push(Vector* vec, void* data, MemPool* pool) {
   if (vec->items + 1 > vec->alloc) {
-    uint8_t* new_data = mempool_alloc(pool, vec->alloc * vec->it_sz * 2);
-    memcpy(new_data, vec->data, vec->items * vec->it_sz);
-    vec->data = new_data;
-    vec->alloc *= 2;
+    vector_resize(vec, pool);
   }
-
   memcpy(vec->data + (vec->items++ * vec->it_sz), data, vec->it_sz);
 }
 
@@ -105,4 +107,11 @@ void* vector_idx(Vector* vec, size_t idx) {
     return NULL;
   }
   return vec->data + (idx * vec->it_sz);
+}
+
+void* vector_alloc(Vector* vec, MemPool* pool) {
+  if (vec->items + 1 > vec->alloc) {
+    vector_resize(vec, pool);
+  }
+  return vec->data + (vec->items++ * vec->it_sz);
 }

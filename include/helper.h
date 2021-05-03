@@ -32,4 +32,6 @@ void vector_init(Vector* vec, size_t it_sz, MemPool* pool);
 void vector_push(Vector* vec, void* data, MemPool* pool);
 void* vector_idx(Vector* vec, size_t idx); /* returns NULL on out of bounds */
 
+/* grows vector and gives a pointer to the uninitialized data */
+void* vector_alloc(Vector* vec, MemPool* pool);
 #endif

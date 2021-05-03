@@ -11,6 +11,14 @@ enum {
   TOK_MUL,
   TOK_DIV,
 
+  /* open/closers */
+  TOK_LPAREN,
+  TOK_RPAREN,
+  TOK_LCURLY,
+  TOK_RCURLY,
+  TOK_LBRACK,
+  TOK_RBRACK,
+
   /* literals/symbols */
   TOK_INT,
   TOK_SYM,

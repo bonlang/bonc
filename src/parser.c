@@ -13,12 +13,30 @@ static Expr* make_expr(AST* ast, int t, const uint8_t* start, size_t sz) {
   return ret;
 }
 
+static Token expect(int t, const char* err_msg) {
+  Token ret = lexer_next();
+  if (ret.t != t) {
+    log_err_final(err_msg);
+  }
+  return ret;
+}
+
+static Expr* parse_expr(AST* ast);
+
 static Expr* parse_primary(AST* ast) {
   Token tok = lexer_next();
-  if (tok.t != TOK_INT) {
-    log_err("expected expression");
+  switch (tok.t) {
+    case TOK_INT:
+      return make_expr(ast, EXPR_INT, tok.start, tok.sz);
+    case TOK_LPAREN: {
+      Expr* ret = parse_expr(ast);
+      expect(TOK_RPAREN, "expected ')'");
+      return ret;
+    }
+    default:
+      log_err_final("expected expression");
+      return NULL; /* unreachable */
   }
-  return make_expr(ast, EXPR_INT, tok.start, tok.sz);
 }
 
 static int parse_binop() {

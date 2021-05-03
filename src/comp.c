@@ -1,6 +1,11 @@
+#include <fcntl.h>
 #include <getopt.h>
+#include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/mman.h>
+#include <sys/stat.h>
+#include <sys/types.h>
 
 #include "helper.h"
 
@@ -36,7 +41,26 @@ int main(int argc, char* argv[]) {
   if (!in_filename) {
     log_err_final("no input file specified");
   }
-  printf("%s\n", in_filename);
 
+  int in_fd = open(in_filename, O_RDONLY);
+  if (in_fd == -1) {
+    log_err_final("unable to open '%s'", in_filename);
+  }
+
+  struct stat _in_stat;
+  if (fstat(in_fd, &_in_stat) == -1) {
+    log_err_final("unable to get stats on '%s'", in_filename);
+  }
+  size_t in_size = _in_stat.st_size;
+
+  const uint8_t* in_file =
+      mmap(NULL, in_size, PROT_READ, MAP_PRIVATE, in_fd, 0);
+  if (in_file == MAP_FAILED) {
+    log_err_final("unable to get contents of '%s'", in_filename);
+  }
+
+  printf("%.*s", (int)in_size, (const char*)in_file);
+
+  munmap((uint8_t*)in_file, in_size);
   return EXIT_SUCCESS;
 }

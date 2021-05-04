@@ -194,6 +194,18 @@ static void parse_expr_stmt(AST* ast, Stmt* stmt) {
   expect(TOK_SEMICOLON, "expected ';'");
 }
 
+static void parse_return(AST* ast, Stmt* stmt) {
+  lexer_next(); /* skip 'return' */
+  stmt->t = STMT_RETURN;
+  if (lexer_peek().t == TOK_SEMICOLON) {
+    lexer_next();
+    stmt->data.ret = NULL;
+  } else {
+    stmt->data.ret = parse_expr(ast);
+    expect(TOK_SEMICOLON, "expected ';'");
+  }
+}
+
 void parse_block(Block* block, AST* ast) {
   lexer_next(); /* skip '{' */
   vector_init(&block->stmts, sizeof(Stmt), &ast->pool);
@@ -201,6 +213,9 @@ void parse_block(Block* block, AST* ast) {
     switch (lexer_peek().t) {
       case TOK_LET:
         parse_let(ast, vector_alloc(&block->stmts, &ast->pool), 0);
+        break;
+      case TOK_RETURN:
+        parse_return(ast, vector_alloc(&block->stmts, &ast->pool));
         break;
       case TOK_MUT:
         parse_let(ast, vector_alloc(&block->stmts, &ast->pool), 1);

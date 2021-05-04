@@ -48,6 +48,7 @@ typedef struct Expr {
 
 enum {
   STMT_LET,
+  STMT_RETURN,
   STMT_EXPR,
 };
 
@@ -64,6 +65,7 @@ typedef struct {
     } let;
 
     Expr* expr;
+    Expr* ret;
   } data;
 } Stmt;
 

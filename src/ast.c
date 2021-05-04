@@ -93,6 +93,12 @@ static void stmt_dump(FILE* file, Stmt* stmt, int indent) {
         expr_dump(file, stmt->data.let.value, indent + 1);
       }
       break;
+    case STMT_RETURN:
+      fprintf(file, "Stmt_Return:\n");
+      if (stmt->data.expr) {
+        expr_dump(file, stmt->data.expr, indent + 1);
+      }
+      break;
     case STMT_EXPR:
       fprintf(file, "Stmt_Expr:\n");
       expr_dump(file, stmt->data.expr, indent + 1);

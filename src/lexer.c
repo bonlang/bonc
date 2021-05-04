@@ -125,6 +125,18 @@ static Token make_int() {
   return make_token(TOK_INT);
 }
 
+static Token match_character(int c, int t1, int t2) {
+  if (is_eof()) {
+    return make_token(t2);
+  }
+
+  if (peek_c() == c) {
+    next_c();
+    return make_token(t1);
+  }
+  return make_token(t2);
+}
+
 static Token lexer_fetch() {
   skip_whitespace();
 
@@ -147,7 +159,20 @@ static Token lexer_fetch() {
     case '/':
       return make_token(TOK_DIV);
     case '=':
+      if (is_eof()) {
+        return make_token(TOK_EQ);
+      }
+      if (peek_c() == '=') {
+        next_c();
+        return make_token(TOK_DEQ);
+      }
       return make_token(TOK_EQ);
+    case '>':
+      return match_character('=', TOK_GREQ, TOK_GR);
+    case '<':
+      return match_character('=', TOK_LEEQ, TOK_LE);
+    case '!':
+      return match_character('=', TOK_NOT, TOK_NEQ);
     case '(':
       return make_token(TOK_LPAREN);
     case ')':

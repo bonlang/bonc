@@ -11,6 +11,15 @@ enum {
   TOK_MUL,
   TOK_DIV,
   TOK_EQ,
+  TOK_DEQ, /* == */
+  TOK_NEQ,
+  TOK_GR,   /* > */
+  TOK_LE,   /* < */
+  TOK_GREQ, /* >= */
+  TOK_LEEQ, /* <= */
+
+  /* unary ops */
+  TOK_NOT,
 
   /* open/closers */
   TOK_LPAREN,

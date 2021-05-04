@@ -4,6 +4,14 @@
 #include <stddef.h>
 #include <stdint.h>
 
+typedef struct {
+  const uint8_t* start;
+  size_t sz;
+} SourcePosition;
+
+SourcePosition combine_pos(SourcePosition pos1, SourcePosition pos2);
+SourcePosition make_pos(const uint8_t* buf, size_t sz);
+
 void log_err(const char* fmt, ...);
 
 /* exits after printing message */
@@ -11,8 +19,7 @@ void log_err_final(const char* fmt, ...);
 
 void log_internal_err(const char* fmt, ...);
 
-void log_source_err(const char* fmt, const uint8_t* base,
-                    const uint8_t* location, ...);
+void log_source_err(const char* fmt, const uint8_t* base, SourcePosition, ...);
 
 typedef struct {
   uint8_t* base;
@@ -37,4 +44,5 @@ void* vector_idx(Vector* vec, size_t idx); /* returns NULL on out of bounds */
 
 /* grows vector and gives a pointer to the uninitialized data */
 void* vector_alloc(Vector* vec, MemPool* pool);
+
 #endif

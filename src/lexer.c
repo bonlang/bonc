@@ -26,10 +26,12 @@ void lexer_init(const uint8_t* buf, size_t sz) {
   lex.peekf = 0;
 }
 
+static inline size_t cur_len() { return lex.end - lex.start; }
+
 static Token make_token(int t) {
   Token ret;
-  ret.start = lex.buf + lex.start;
-  ret.sz = lex.end - lex.start;
+  ret.pos.start = lex.buf + lex.start;
+  ret.pos.sz = cur_len();
   ret.t = t;
   lex.start = lex.end; /* reset lexer */
   return ret;
@@ -51,8 +53,6 @@ static void skip_whitespace() {
   }
   lex.start = lex.end;
 }
-
-static inline size_t cur_len() { return lex.end - lex.start; }
 
 static inline int match(int t, const char* name) {
   if (strlen(name) != cur_len()) {
@@ -203,7 +203,8 @@ static Token lexer_fetch() {
     case ',':
       return make_token(TOK_COMMA);
   }
-  log_source_err("unexpected char '%c'", lex.buf, lex.buf + lex.start, c);
+  log_source_err("unexpected char '%c'", lex.buf,
+                 make_pos(lex.buf + lex.start, cur_len()), c);
   return make_symbol(TOK_EOF); /* unreachable */
 }
 

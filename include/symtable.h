@@ -13,8 +13,7 @@ typedef struct {
 } VarInfo;
 
 typedef struct ScopeEntry {
-  const uint8_t* name;
-  size_t sz;
+  SourcePosition pos;
   struct ScopeEntry* next;
   VarInfo inf;
 } ScopeEntry;
@@ -29,10 +28,10 @@ typedef struct Scope {
 Scope* scope_init(MemPool* pool, Scope* up);
 
 /* returns NULL if already found */
-ScopeEntry* scope_insert(MemPool* pool, Scope* scope, const uint8_t* name,
-                         size_t sz, VarInfo inf);
+ScopeEntry* scope_insert(MemPool* pool, Scope* scope, SourcePosition pos,
+                         VarInfo inf);
 
 /* returns NULL no entry */
-ScopeEntry* scope_find(Scope* scope, const uint8_t* name, size_t sz);
+ScopeEntry* scope_find(Scope* scope, SourcePosition pos);
 
 #endif

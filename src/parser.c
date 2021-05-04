@@ -8,11 +8,10 @@
 static Scope* cur_scope;
 const uint8_t* src_base;
 
-static Expr* make_expr(AST* ast, int t, const uint8_t* start, size_t sz) {
+static Expr* make_expr(AST* ast, int t, SourcePosition pos) {
   Expr* ret = mempool_alloc(&ast->pool, sizeof(Expr));
   ret->t = t;
-  ret->start = start;
-  ret->sz = sz;
+  ret->pos = pos;
   ret->type = NULL;
   return ret;
 }
@@ -20,7 +19,7 @@ static Expr* make_expr(AST* ast, int t, const uint8_t* start, size_t sz) {
 static Token expect(int t, const char* err_msg) {
   Token ret = lexer_next();
   if (ret.t != t) {
-    log_source_err(err_msg, src_base, ret.start);
+    log_source_err(err_msg, src_base, ret.pos);
   }
   return ret;
 }
@@ -31,16 +30,16 @@ static Expr* parse_primary(AST* ast) {
   Token tok = lexer_next();
   switch (tok.t) {
     case TOK_INT:
-      return make_expr(ast, EXPR_INT, tok.start, tok.sz);
+      return make_expr(ast, EXPR_INT, tok.pos);
     case TOK_SYM:
-      return make_expr(ast, EXPR_VAR, tok.start, tok.sz);
+      return make_expr(ast, EXPR_VAR, tok.pos);
     case TOK_LPAREN: {
       Expr* ret = parse_expr(ast);
       expect(TOK_RPAREN, "expected ')'");
       return ret;
     }
     default:
-      log_source_err("expected expression", src_base, tok.start);
+      log_source_err("expected expression", src_base, tok.pos);
       return NULL; /* unreachable */
   }
 }
@@ -78,8 +77,8 @@ static Expr* parse_factor(AST* ast) {
   while ((tok = lexer_peek()).t == TOK_MUL || tok.t == TOK_DIV) {
     int op = parse_binop();
     Expr* right = parse_primary(ast);
-    Expr* new_ret = make_expr(ast, EXPR_BINOP, ret->start,
-                              (right->start - ret->start) + right->sz);
+    Expr* new_ret =
+        make_expr(ast, EXPR_BINOP, combine_pos(ret->pos, right->pos));
     new_ret->data.binop.left = ret;
     new_ret->data.binop.right = right;
     new_ret->data.binop.op = op;
@@ -94,8 +93,8 @@ static Expr* parse_term(AST* ast) {
   while ((tok = lexer_peek()).t == TOK_ADD || tok.t == TOK_SUB) {
     int op = parse_binop();
     Expr* right = parse_factor(ast);
-    Expr* new_ret = make_expr(ast, EXPR_BINOP, ret->start,
-                              (right->start - ret->start) + right->sz);
+    Expr* new_ret =
+        make_expr(ast, EXPR_BINOP, combine_pos(ret->pos, right->pos));
     new_ret->data.binop.left = ret;
     new_ret->data.binop.right = right;
     new_ret->data.binop.op = op;
@@ -112,8 +111,8 @@ static Expr* parse_comp(AST* ast) {
          tok.t == TOK_LEEQ) {
     int op = parse_binop();
     Expr* right = parse_term(ast);
-    Expr* new_ret = make_expr(ast, EXPR_BINOP, ret->start,
-                              (right->start - ret->start) + right->sz);
+    Expr* new_ret =
+        make_expr(ast, EXPR_BINOP, combine_pos(ret->pos, right->pos));
     new_ret->data.binop.left = ret;
     new_ret->data.binop.right = right;
     new_ret->data.binop.op = op;
@@ -147,44 +146,45 @@ static Type* parse_type(AST* ast) {
     case TOK_BOOL:
       return &bool_const;
   }
-  log_source_err("expected type name", src_base, type_tok.start);
+  log_source_err("expected type name", src_base, type_tok.pos);
   return NULL;
 }
 
 static void parse_let(AST* ast, Stmt* stmt, int mut) {
-  stmt->start = lexer_next().start;
+  Token first_tok = lexer_next();
   stmt->t = STMT_LET;
   Token var_name = expect(TOK_SYM, "expected variable name");
 
+  Token last_tok;
   Token middle_tok = lexer_next();
   if (middle_tok.t == TOK_EQ) {
     stmt->data.let.value = parse_expr(ast);
     stmt->data.let.type = NULL;
-    expect(TOK_SEMICOLON, "expected ';'");
+    last_tok = expect(TOK_SEMICOLON, "expected ';'");
   } else if (middle_tok.t == TOK_COLON) {
     stmt->data.let.type = parse_type(ast);
     Token equal_tok = lexer_next();
     if (equal_tok.t == TOK_EQ) {
       stmt->data.let.value = parse_expr(ast);
-      expect(TOK_SEMICOLON, "expected ';'");
+      last_tok = expect(TOK_SEMICOLON, "expected ';'");
     } else if (equal_tok.t == TOK_SEMICOLON) {
+      last_tok = equal_tok;
       stmt->data.let.value = NULL;
     } else {
-      log_source_err("expected '=' or ';'", src_base, equal_tok.start);
+      log_source_err("expected '=' or ';'", src_base, equal_tok.pos);
     }
   } else {
-    log_source_err("expected '=' or ':'", src_base, middle_tok.start);
+    log_source_err("expected '=' or ':'", src_base, middle_tok.pos);
   }
 
-  stmt->data.let.name = var_name.start;
-  stmt->data.let.sz = var_name.sz;
+  stmt->pos = combine_pos(first_tok.pos, last_tok.pos);
+  stmt->data.let.name = var_name.pos;
   stmt->data.let.mut = mut;
   VarInfo info = {.mut = mut, .type = stmt->data.let.type};
-  ScopeEntry* entry =
-      scope_insert(&ast->pool, cur_scope, var_name.start, var_name.sz, info);
+  ScopeEntry* entry = scope_insert(&ast->pool, cur_scope, var_name.pos, info);
   if (entry == NULL) {
-    log_source_err("redeclaration of variable '%.*s'", src_base, var_name.start,
-                   (int)var_name.sz, (char*)var_name.start);
+    log_source_err("redeclaration of variable '%.*s'", src_base, var_name.pos,
+                   (int)var_name.pos.sz, (char*)var_name.pos.start);
   }
   stmt->data.let.var = entry;
 }
@@ -237,8 +237,7 @@ void parse_fn(AST* ast, Function* function) {
   expect(TOK_FN, "expected 'fn'");
 
   Token name_tok = expect(TOK_SYM, "expected function name");
-  function->name = name_tok.start;
-  function->sz = name_tok.sz;
+  function->pos = name_tok.pos;
 
   expect(TOK_LPAREN, "expected '('");
   vector_init(&function->params, sizeof(Param), &ast->pool);
@@ -247,13 +246,12 @@ void parse_fn(AST* ast, Function* function) {
   while (lexer_peek().t != TOK_RPAREN) {
     Param* param = vector_alloc(&function->params, &ast->pool);
     Token name_tok = expect(TOK_SYM, "expected param name");
-    param->name = name_tok.start;
-    param->sz = name_tok.sz;
+    param->name = name_tok.pos;
 
     expect(TOK_COLON, "expected ':'");
     param->type = parse_type(ast);
     VarInfo info = {.mut = 0, .type = param->type};
-    scope_insert(&ast->pool, new_scope, param->name, param->sz, info);
+    scope_insert(&ast->pool, new_scope, param->name, info);
     if (lexer_peek().t == TOK_COMMA) {
       lexer_next();
     }

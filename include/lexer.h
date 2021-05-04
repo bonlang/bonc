@@ -4,6 +4,8 @@
 #include <stddef.h>
 #include <stdint.h>
 
+#include "helper.h"
+
 enum {
   /* binary ops */
   TOK_ADD,
@@ -63,8 +65,7 @@ enum {
 
 typedef struct {
   int t;
-  const uint8_t* start;
-  size_t sz;
+  SourcePosition pos;
 } Token;
 
 void lexer_init(const uint8_t* buf, size_t sz);

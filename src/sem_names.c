@@ -7,10 +7,9 @@ static void resolve_expr(AST* ast, Scope* scope, Expr* expr) {
       resolve_expr(ast, scope, expr->data.binop.right);
       break;
     case EXPR_VAR: {
-      ScopeEntry* entry = scope_find(scope, expr->start, expr->sz);
+      ScopeEntry* entry = scope_find(scope, expr->pos);
       if (entry == NULL) {
-        log_source_err("cannot find variable '%.*s'", ast->src_base,
-                       expr->start, (int)expr->sz, (char*)expr->start);
+        log_source_err("cannot find variable '%.*s'", ast->src_base, expr->pos);
       }
       expr->data.var = entry;
     }

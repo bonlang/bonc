@@ -15,38 +15,37 @@ Scope* scope_init(MemPool* pool, Scope* up) {
   return scope;
 }
 
-static inline size_t hash_str(const uint8_t* name, size_t sz) {
+static inline size_t hash_str(SourcePosition pos) {
   size_t total = 0;
-  for (size_t i = 0; i < sz; i++) {
-    total += name[i];
+  for (size_t i = 0; i < pos.sz; i++) {
+    total += pos.start[i];
   }
   return total;
 }
 
-ScopeEntry* scope_insert(MemPool* pool, Scope* scope, const uint8_t* name,
-                         size_t sz, VarInfo inf) {
-  size_t idx = hash_str(name, sz) % scope->nbuckets;
+ScopeEntry* scope_insert(MemPool* pool, Scope* scope, SourcePosition pos,
+                         VarInfo inf) {
+  size_t idx = hash_str(pos) % scope->nbuckets;
   for (ScopeEntry* iter = scope->buckets[idx]; iter != NULL;
        iter = iter->next) {
-    if (memcmp(name, iter->name, MIN(sz, iter->sz)) == 0) {
+    if (memcmp(pos.start, iter->pos.start, MIN(pos.sz, iter->pos.sz)) == 0) {
       return NULL;
     }
   }
 
   ScopeEntry* new_entry = mempool_alloc(pool, sizeof(ScopeEntry));
   new_entry->next = scope->buckets[idx];
-  new_entry->name = name;
-  new_entry->sz = sz;
+  new_entry->pos = pos;
   new_entry->inf = inf;
   scope->buckets[idx] = new_entry;
   return new_entry;
 }
 
-ScopeEntry* scope_find(Scope* scope, const uint8_t* name, size_t sz) {
-  size_t idx = hash_str(name, sz) % scope->nbuckets;
+ScopeEntry* scope_find(Scope* scope, SourcePosition pos) {
+  size_t idx = hash_str(pos) % scope->nbuckets;
   for (ScopeEntry* iter = scope->buckets[idx]; iter != NULL;
        iter = iter->next) {
-    if (memcmp(name, iter->name, MIN(sz, iter->sz)) == 0) {
+    if (memcmp(pos.start, iter->pos.start, MIN(pos.sz, iter->pos.sz)) == 0) {
       return iter;
     }
   }

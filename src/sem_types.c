@@ -62,7 +62,7 @@ static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
       expr->type = coerce_type(expr->data.binop.op, expr->data.binop.left->type,
                                expr->data.binop.right->type, pool);
       if (expr->type == NULL) {
-        log_source_err("cannot coerce types", ast->src_base, expr->start);
+        log_source_err("cannot coerce types", ast->src_base, expr->pos);
       }
   }
 }
@@ -86,7 +86,7 @@ void resolve_types(AST* ast) {
           } else if (coerce_type(BINOP_ASSIGN, type, temp_stmt->data.let.type,
                                  &ast->pool) == NULL) {
             log_source_err("cannot coerce assignment", ast->src_base,
-                           temp_stmt->start);
+                           temp_stmt->pos);
           }
         }
         break;

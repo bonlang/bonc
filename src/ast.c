@@ -69,10 +69,12 @@ static void expr_dump(FILE* file, Expr* expr, int indent) {
   print_indent(file, indent);
   switch (expr->t) {
     case EXPR_INT:
-      fprintf(file, "Expr_Int: %.*s\n", (int)expr->sz, (char*)expr->start);
+      fprintf(file, "Expr_Int: %.*s\n", (int)expr->pos.sz,
+              (char*)expr->pos.start);
       break;
     case EXPR_VAR:
-      fprintf(file, "Expr_Var: %.*s\n", (int)expr->sz, (char*)expr->start);
+      fprintf(file, "Expr_Var: %.*s\n", (int)expr->pos.sz,
+              (char*)expr->pos.start);
       break;
     case EXPR_BINOP:
       fprintf(file, "Expr_Binop: %s\n", str_of_binop(expr->data.binop.op));
@@ -86,8 +88,8 @@ static void stmt_dump(FILE* file, Stmt* stmt, int indent) {
   print_indent(file, indent);
   switch (stmt->t) {
     case STMT_LET:
-      fprintf(file, "Stmt_Let: %.*s\n", (int)stmt->data.let.sz,
-              (char*)stmt->data.let.name);
+      fprintf(file, "Stmt_Let: %.*s\n", (int)stmt->data.let.name.sz,
+              (char*)stmt->data.let.name.start);
       type_dump(file, stmt->data.let.type, indent + 1);
       if (stmt->data.let.value) {
         expr_dump(file, stmt->data.let.value, indent + 1);

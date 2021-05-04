@@ -15,6 +15,18 @@
 #define POOL_MAX_SZ 16777216
 #define POOL_CHUNK_SZ 4096
 
+SourcePosition combine_pos(SourcePosition pos1, SourcePosition pos2) {
+  SourcePosition ret;
+  ret.start = pos1.start;
+  ret.sz = (pos2.start - pos1.start) + pos2.sz;
+  return ret;
+}
+
+SourcePosition make_pos(const uint8_t* buf, size_t sz) {
+  SourcePosition ret = {.start = buf, .sz = sz};
+  return ret;
+}
+
 void log_err(const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);
@@ -41,22 +53,22 @@ void log_internal_err(const char* fmt, ...) {
   exit(EXIT_FAILURE);
 }
 
-void log_source_err(const char* fmt, const uint8_t* base,
-                    const uint8_t* location, ...) {
+void log_source_err(const char* fmt, const uint8_t* base, SourcePosition pos,
+                    ...) {
   va_list args;
-  va_start(args, location);
+  va_start(args, pos);
 
   fprintf(stderr, RED "error" RESET ": ");
   vfprintf(stderr, fmt, args);
   fprintf(stderr, "\n");
-  while ((location--) != base && (*location) != '\n') {
+  while ((pos.start--) != base && (*pos.start) != '\n') {
   }
 
   ; /* noop */
-  location++;
+  pos.start++;
   fprintf(stderr, " | " WHITE_UNDERLINE);
-  for (; (*location) != '\n'; location++) {
-    putc(*location, stderr);
+  for (; (*pos.start) != '\n'; pos.start++) {
+    putc(*pos.start, stderr);
   }
   fprintf(stderr, RESET "\n");
   exit(EXIT_FAILURE);

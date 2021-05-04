@@ -29,13 +29,11 @@ enum {
   EXPR_INT,
   EXPR_VAR,
   EXPR_BINOP,
-  EXPR_DEC,
 };
 
 typedef struct Expr {
   int t;
-  const uint8_t* start;
-  size_t sz;
+  SourcePosition pos;
 
   Type* type;
   union {
@@ -57,13 +55,11 @@ enum {
 
 typedef struct {
   int t;
-  const uint8_t* start;
-  size_t sz;
+  SourcePosition pos;
 
   union {
     struct {
-      const uint8_t* name;
-      size_t sz;
+      SourcePosition name;
       int mut;
       ScopeEntry* var;
       Type* type;
@@ -76,18 +72,17 @@ typedef struct {
 } Stmt;
 
 typedef struct {
+  SourcePosition pos;
   Vector stmts; /* Stmt */
 } Block;
 
 typedef struct {
   Type* type;
-  const uint8_t* name;
-  size_t sz;
+  SourcePosition name;
 } Param;
 
 typedef struct {
-  const uint8_t* name;
-  size_t sz;
+  SourcePosition pos;
   Block body;
   Vector params; /* Param */
   Type* ret_type;

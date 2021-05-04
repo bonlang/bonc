@@ -6,10 +6,15 @@
 
 #include "helper.h"
 
+typedef struct {
+  int mut;
+} VarInfo;
+
 typedef struct ScopeEntry {
   const uint8_t* name;
   size_t sz;
   struct ScopeEntry* next;
+  VarInfo inf;
 } ScopeEntry;
 
 typedef struct Scope {
@@ -23,7 +28,7 @@ void scope_init(Scope* scope, MemPool* pool, Scope* up);
 
 /* returns NULL if already found */
 ScopeEntry* scope_insert(MemPool* pool, Scope* scope, const uint8_t* name,
-                         size_t sz);
+                         size_t sz, VarInfo inf);
 
 /* returns NULL no entry */
 ScopeEntry* scope_find(Scope* scope, const uint8_t* name, size_t sz);

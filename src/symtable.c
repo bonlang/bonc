@@ -22,7 +22,7 @@ static inline size_t hash_str(const uint8_t* name, size_t sz) {
 }
 
 ScopeEntry* scope_insert(MemPool* pool, Scope* scope, const uint8_t* name,
-                         size_t sz) {
+                         size_t sz, VarInfo inf) {
   size_t idx = hash_str(name, sz) % scope->nbuckets;
   for (ScopeEntry* iter = scope->buckets[idx]; iter != NULL;
        iter = iter->next) {
@@ -35,6 +35,7 @@ ScopeEntry* scope_insert(MemPool* pool, Scope* scope, const uint8_t* name,
   new_entry->next = scope->buckets[idx];
   new_entry->name = name;
   new_entry->sz = sz;
+  new_entry->inf = inf;
   scope->buckets[idx] = new_entry;
   return new_entry;
 }

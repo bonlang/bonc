@@ -5,6 +5,8 @@
 #include "ast.h"
 #include "lexer.h"
 
+static Scope* cur_scope;
+
 static Expr* make_expr(AST* ast, int t, const uint8_t* start, size_t sz) {
   Expr* ret = mempool_alloc(&ast->pool, sizeof(Expr));
   ret->t = t;
@@ -100,6 +102,13 @@ static void parse_let(AST* ast, Stmt* stmt, int mut) {
   stmt->data.let.name = var_name.start;
   stmt->data.let.sz = var_name.sz;
   stmt->data.let.mut = mut;
+  VarInfo info = {.mut = mut};
+  ScopeEntry* entry =
+      scope_insert(&ast->pool, cur_scope, var_name.start, var_name.sz, info);
+  if (entry == NULL) {
+    log_err_final("redeclaration of variable '%.*s'", (int)var_name.sz,
+                  (char*)var_name.start);
+  }
 }
 
 static void parse_expr_stmt(AST* ast, Stmt* stmt) {
@@ -132,6 +141,7 @@ AST parse_ast() {
   AST ret;
 
   ast_init(&ret);
+  cur_scope = &ret.global;
   parse_block(&ret.block, &ret);
   return ret;
 }

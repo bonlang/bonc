@@ -12,7 +12,7 @@
 #define RESET "\033[0m"
 
 #define POOL_MAX_SZ 16777216
-#define POOL_CHUNK_SZ 2048
+#define POOL_CHUNK_SZ 4096
 
 void log_err(const char* fmt, ...) {
   va_list args;
@@ -69,8 +69,11 @@ static inline size_t size_needed(size_t requested) {
 }
 
 void* mempool_alloc(MemPool* pool, size_t amount) {
-  if (pool->size + amount >= pool->alloc) {
+  if (pool->size + amount + 1 >= pool->alloc) {
     size_t needed = size_needed(amount);
+    if (pool->alloc + needed > POOL_MAX_SZ) {
+      exit(1);
+    }
     mprotect(pool->base + pool->alloc, needed, PROT_READ | PROT_WRITE);
     pool->alloc += needed;
   }

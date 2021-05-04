@@ -14,6 +14,12 @@ enum {
   BINOP_SUB,
   BINOP_MUL,
   BINOP_DIV,
+  BINOP_EQ,
+  BINOP_NEQ,
+  BINOP_GR,
+  BINOP_LE,
+  BINOP_GREQ,
+  BINOP_LEEQ,
 };
 
 enum {

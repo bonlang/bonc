@@ -38,6 +38,18 @@ static const char* str_of_binop(int op) {
       return "*";
     case BINOP_DIV:
       return "/";
+    case BINOP_EQ:
+      return "==";
+    case BINOP_NEQ:
+      return "!=";
+    case BINOP_GR:
+      return ">";
+    case BINOP_GREQ:
+      return ">=";
+    case BINOP_LE:
+      return "<";
+    case BINOP_LEEQ:
+      return "<=";
   }
   log_internal_err("invalid binary op: %d", op);
   exit(EXIT_FAILURE);

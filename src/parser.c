@@ -55,6 +55,18 @@ static int parse_binop() {
       return BINOP_MUL;
     case TOK_DIV:
       return BINOP_DIV;
+    case TOK_DEQ:
+      return BINOP_EQ;
+    case TOK_NEQ:
+      return BINOP_NEQ;
+    case TOK_GR:
+      return BINOP_GR;
+    case TOK_LE:
+      return BINOP_LE;
+    case TOK_GREQ:
+      return BINOP_GREQ;
+    case TOK_LEEQ:
+      return BINOP_LEEQ;
   }
   log_internal_err("impossible binary op token");
   exit(EXIT_FAILURE);
@@ -92,7 +104,25 @@ static Expr* parse_term(AST* ast) {
   return ret;
 }
 
-static inline Expr* parse_expr(AST* ast) { return parse_term(ast); }
+static Expr* parse_comp(AST* ast) {
+  Expr* ret = parse_term(ast);
+  Token tok;
+  while ((tok = lexer_peek()).t == TOK_DEQ || tok.t == TOK_NEQ ||
+         tok.t == TOK_GR || tok.t == TOK_LE || tok.t == TOK_GREQ ||
+         tok.t == TOK_LEEQ) {
+    int op = parse_binop();
+    Expr* right = parse_term(ast);
+    Expr* new_ret = make_expr(ast, EXPR_BINOP, ret->start,
+                              (right->start - ret->start) + right->sz);
+    new_ret->data.binop.left = ret;
+    new_ret->data.binop.right = right;
+    new_ret->data.binop.op = op;
+    ret = new_ret;
+  }
+  return ret;
+}
+
+static inline Expr* parse_expr(AST* ast) { return parse_comp(ast); }
 
 static Type* parse_type(AST* ast) {
   (void)ast; /* will need this later for allocations */
@@ -120,6 +150,7 @@ static Type* parse_type(AST* ast) {
   log_source_err("expected type name", src_base, type_tok.start);
   return NULL;
 }
+
 static void parse_let(AST* ast, Stmt* stmt, int mut) {
   lexer_next();
   stmt->t = STMT_LET;

@@ -33,6 +33,7 @@ typedef struct Expr {
       struct Expr* right;
       int op;
     } binop;
+    ScopeEntry* var;
   } data;
 
 } Expr;

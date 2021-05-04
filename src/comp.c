@@ -10,6 +10,7 @@
 #include "helper.h"
 #include "lexer.h"
 #include "parser.h"
+#include "semantics.h"
 
 int main(int argc, char* argv[]) {
   int c, invalid_args = 0;
@@ -64,6 +65,7 @@ int main(int argc, char* argv[]) {
   lexer_init(in_file, in_size);
 
   AST ast = parse_ast();
+  resolve_names(&ast);
   ast_dump(stdout, &ast);
 
   ast_deinit(&ast);

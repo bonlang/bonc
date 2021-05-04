@@ -6,6 +6,7 @@ src = [
   'src/ast.c',
   'src/lexer.c',
   'src/parser.c',
+  'src/sem_names.c',
   'src/comp.c',
 ]
 

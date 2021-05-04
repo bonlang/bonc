@@ -5,7 +5,6 @@
 #include "ast.h"
 #include "lexer.h"
 
-static Scope* cur_scope;
 const uint8_t* src_base;
 
 static Expr* make_expr(AST* ast, int t, SourcePosition pos) {
@@ -180,13 +179,6 @@ static void parse_let(AST* ast, Stmt* stmt, int mut) {
   stmt->pos = combine_pos(first_tok.pos, last_tok.pos);
   stmt->data.let.name = var_name.pos;
   stmt->data.let.mut = mut;
-  VarInfo info = {.mut = mut, .type = stmt->data.let.type};
-  ScopeEntry* entry = scope_insert(&ast->pool, cur_scope, var_name.pos, info);
-  if (entry == NULL) {
-    log_source_err("redeclaration of variable '%.*s'", src_base, var_name.pos,
-                   (int)var_name.pos.sz, (char*)var_name.pos.start);
-  }
-  stmt->data.let.var = entry;
 }
 
 static void parse_expr_stmt(AST* ast, Stmt* stmt) {
@@ -207,8 +199,7 @@ static void parse_return(AST* ast, Stmt* stmt) {
   }
 }
 
-void parse_block(Block* block, AST* ast, Scope* scope) {
-  cur_scope = scope;
+void parse_block(Block* block, AST* ast) {
   lexer_next(); /* skip '{' */
   vector_init(&block->stmts, sizeof(Stmt), &ast->pool);
   while (1) {
@@ -230,7 +221,6 @@ void parse_block(Block* block, AST* ast, Scope* scope) {
         break;
     }
   }
-  cur_scope = cur_scope->up;
 }
 
 void parse_fn(AST* ast, Function* function) {
@@ -242,7 +232,6 @@ void parse_fn(AST* ast, Function* function) {
   expect(TOK_LPAREN, "expected '('");
   vector_init(&function->params, sizeof(Param), &ast->pool);
 
-  Scope* new_scope = scope_init(&ast->pool, cur_scope);
   while (lexer_peek().t != TOK_RPAREN) {
     Param* param = vector_alloc(&function->params, &ast->pool);
     Token name_tok = expect(TOK_SYM, "expected param name");
@@ -250,8 +239,6 @@ void parse_fn(AST* ast, Function* function) {
 
     expect(TOK_COLON, "expected ':'");
     param->type = parse_type(ast);
-    VarInfo info = {.mut = 0, .type = param->type};
-    scope_insert(&ast->pool, new_scope, param->name, info);
     if (lexer_peek().t == TOK_COMMA) {
       lexer_next();
     }
@@ -263,8 +250,7 @@ void parse_fn(AST* ast, Function* function) {
     function->ret_type = parse_type(ast);
   }
 
-  parse_block(&function->body, ast, new_scope);
-  function->scope = new_scope;
+  parse_block(&function->body, ast);
 }
 
 AST parse_ast(const uint8_t* src) {
@@ -272,7 +258,6 @@ AST parse_ast(const uint8_t* src) {
 
   ast_init(&ret, src);
   src_base = src;
-  cur_scope = ret.global;
   parse_fn(&ret, &ret.fn);
   return ret;
 }

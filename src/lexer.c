@@ -55,6 +55,9 @@ static void skip_whitespace() {
 static inline size_t cur_len() { return lex.end - lex.start; }
 
 static inline int match(int t, const char* name) {
+  if (strlen(name) != cur_len()) {
+    return TOK_SYM;
+  }
   if (strncmp((char*)name, (char*)lex.buf + lex.start, cur_len()) == 0) {
     return t;
   }

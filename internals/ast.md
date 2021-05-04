@@ -7,6 +7,8 @@ After parsing, a series of semantic analysis passes are made to fill in info on 
 
 The BCC2 AST is made up a list of functions.
 
+## AST Definition
+
 ### Function 
 
 A function represents a single function in the source code with all the information needed to reconstruct the source.
@@ -71,3 +73,23 @@ Expressions are represented as a variant enum with a discriminator called "t" an
 | op    | int   |
 *===============*
 
+
+### Type
+
+Type is also represented as a variant enum with a discriminator called "t". Currently there are only builtin types, so there is no need for conglomerate types.
+
+All builtin types are statically allocated, and can be found in type.h.
+
+## AST Passes
+
+### Symbol Resolution
+
+File: sem_names.c
+
+The first pass needed resolves all symbols by first inserting all toplevels into the global symbol table, and then iterating over functions and their local blocks, inserting local variables into the symbol table and then connecting variable references to those symbol table entries.
+
+### Type Resolution
+
+File: sem_types.c
+
+This pass iterates through every statement and expression in the AST and gives each expression a type, and ensure that assignments and returns are sound type wise.

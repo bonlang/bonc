@@ -3,6 +3,16 @@
 #include <stdio.h>
 #include <stdlib.h>
 
+Type U8_const = {.t = TYPE_U8};
+Type U16_const = {.t = TYPE_U16};
+Type U32_const = {.t = TYPE_U32};
+Type U64_const = {.t = TYPE_U64};
+Type I8_const = {.t = TYPE_I8};
+Type I16_const = {.t = TYPE_I16};
+Type I32_const = {.t = TYPE_I32};
+Type I64_const = {.t = TYPE_I64};
+Type bool_const = {.t = TYPE_BOOL};
+
 void ast_deinit(AST* ast) { mempool_deinit(&ast->pool); }
 
 void ast_init(AST* ast) {

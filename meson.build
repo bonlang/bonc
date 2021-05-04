@@ -7,6 +7,7 @@ src = [
   'src/lexer.c',
   'src/parser.c',
   'src/sem_names.c',
+  'src/sem_types.c',
   'src/comp.c',
 ]
 

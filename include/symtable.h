@@ -5,9 +5,11 @@
 #include <stdint.h>
 
 #include "helper.h"
+#include "type.h"
 
 typedef struct {
   int mut;
+  struct Type* type;
 } VarInfo;
 
 typedef struct ScopeEntry {

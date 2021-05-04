@@ -4,5 +4,6 @@
 #include "ast.h"
 
 void resolve_names(AST* ast);
+void resolve_types(AST* ast);
 
 #endif

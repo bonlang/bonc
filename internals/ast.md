@@ -13,12 +13,12 @@ The BCC2 AST is made up a list of functions.
 
 A function represents a single function in the source code with all the information needed to reconstruct the source.
 
-*===========================* 
+| member_name | description |
+| ------------|-------------|
 | name   | FatPtr to source |  
 | params | Vector of Param  |
 | ret    | Type*            |
 | stmts  | Vector of Stmt   | 
-*===========================*
 
 
 ### Stmt 
@@ -31,25 +31,26 @@ Statements are represented as a variant enum with a discriminator called "t" and
 
 * STMT_LET - Introduces a name (optionally a value) to the enviroment 
 
-*===================================================*
+| member_name | description                         |
+|-------------------------------------|-------------|
 | name  | SourcePosition of new binding name        |
 | type  | Type* (null if inferred, filled in later) |
 | value | Expr* (null if not initialized)           |
 | var   | ScopeEntry* to symbol table               |
-*===================================================*
 
 
 * STMT_RETURN - Returns from the current function, optionally with a value
 
-*=============================================*
+| member_name | description                   |
+|-------------------------------------|-------|
 | return | Expr* (null if nothing is returned |
-*=============================================*
 
 * STMT_EXPR - A single expression terminated with a ';'
 
-*==============*
+
+| member_name | description                   |
+|-------------------------------------|-------|
 | expr | Expr* |
-*==============*
 
 ### Expr
 
@@ -67,11 +68,11 @@ Expressions are represented as a variant enum with a discriminator called "t" an
 
 * EXPR_BINOP - Binary operation  with two expressions on the left and right
 
-*===============*
+| member_name | description                   |
+|-------------------------------------|-------|
 | left  | Expr* |
 | right | Expr* |
 | op    | int   |
-*===============*
 
 
 ### Type

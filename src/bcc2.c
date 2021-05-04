@@ -67,6 +67,7 @@ int main(int argc, char* argv[]) {
   AST ast = parse_ast(in_file);
   resolve_names(&ast);
   resolve_types(&ast);
+  check_returns(&ast);
   ast_dump(stdout, &ast);
 
   ast_deinit(&ast);

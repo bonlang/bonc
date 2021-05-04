@@ -6,7 +6,7 @@ static inline int is_integer_type(int t) {
          t == TYPE_INT;
 }
 
-static Type* coerce_type(int op, Type* left, Type* right, MemPool* pool) {
+Type* coerce_type(int op, Type* left, Type* right, MemPool* pool) {
   (void)pool;
   switch (op) {
     case BINOP_ADD:

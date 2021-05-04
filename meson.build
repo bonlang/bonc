@@ -8,6 +8,7 @@ src = [
   'src/parser.c',
   'src/sem_names.c',
   'src/sem_types.c',
+  'src/sem_returns.c',
   'src/bcc2.c',
 ]
 

@@ -12,6 +12,7 @@ Type I16_const = {.t = TYPE_I16};
 Type I32_const = {.t = TYPE_I32};
 Type I64_const = {.t = TYPE_I64};
 Type bool_const = {.t = TYPE_BOOL};
+Type int_const = {.t = TYPE_INT};
 
 void ast_deinit(AST* ast) { mempool_deinit(&ast->pool); }
 
@@ -41,6 +42,15 @@ static const char* str_of_binop(int op) {
   exit(EXIT_FAILURE);
 }
 
+static const char* type_to_str[] = {
+    "Type_Infer", "Type_Int", "Type_U8",  "Type_U16", "Type_U32", "Type_U64",
+    "Type_I8",    "Type_I16", "Type_I32", "Type_I64", "Type_Bool"};
+
+static void type_dump(FILE* file, Type* type, int indent) {
+  print_indent(file, indent);
+  printf("%s\n", type_to_str[type->t]);
+}
+
 static void expr_dump(FILE* file, Expr* expr, int indent) {
   print_indent(file, indent);
   switch (expr->t) {
@@ -63,6 +73,7 @@ static void stmt_dump(FILE* file, Stmt* stmt) {
     case STMT_LET:
       fprintf(file, "Stmt_Let: %.*s\n", (int)stmt->data.let.sz,
               (char*)stmt->data.let.name);
+      type_dump(file, stmt->data.let.type, 1);
       if (stmt->data.let.value) {
         expr_dump(file, stmt->data.let.value, 1);
       }

@@ -81,11 +81,11 @@ static int pick_symbol_type() {
         case '8':
           return match(TOK_U8, "u8");
         case '1':
-          return match(TOK_U8, "u16");
+          return match(TOK_U16, "u16");
         case '3':
-          return match(TOK_U8, "u32");
+          return match(TOK_U32, "u32");
         case '6':
-          return match(TOK_U8, "u64");
+          return match(TOK_U64, "u64");
       }
       break;
     case 'i':
@@ -96,11 +96,11 @@ static int pick_symbol_type() {
         case '8':
           return match(TOK_I8, "i8");
         case '1':
-          return match(TOK_I8, "i16");
+          return match(TOK_I16, "i16");
         case '3':
-          return match(TOK_I8, "i32");
+          return match(TOK_I32, "i32");
         case '6':
-          return match(TOK_I8, "i64");
+          return match(TOK_I64, "i64");
       }
       break;
   }

@@ -92,13 +92,74 @@ static Expr* parse_term(AST* ast) {
 
 static inline Expr* parse_expr(AST* ast) { return parse_term(ast); }
 
+static Type U8_const = {.t = TOK_U8};
+static Type U16_const = {.t = TOK_U16};
+static Type U32_const = {.t = TOK_U32};
+static Type U64_const = {.t = TOK_U64};
+static Type I8_const = {.t = TOK_I8};
+static Type I16_const = {.t = TOK_I16};
+static Type I32_const = {.t = TOK_I32};
+static Type I64_const = {.t = TOK_I64};
+static Type bool_const = {.t = TOK_BOOL};
+
+static void parse_type(AST* ast, Type* type) {
+  (void)ast; /* will need this later for allocations */
+  Token type_tok = lexer_next();
+  switch (type_tok.t) {
+    case TOK_U8:
+      *type = U8_const;
+      break;
+    case TOK_U16:
+      *type = U16_const;
+      break;
+    case TOK_U32:
+      *type = U32_const;
+      break;
+    case TOK_U64:
+      *type = U64_const;
+      break;
+    case TOK_I8:
+      *type = I8_const;
+      break;
+    case TOK_I16:
+      *type = I16_const;
+      break;
+    case TOK_I32:
+      *type = I32_const;
+      break;
+    case TOK_I64:
+      *type = I64_const;
+      break;
+    case TOK_BOOL:
+      *type = bool_const;
+      break;
+  }
+}
 static void parse_let(AST* ast, Stmt* stmt, int mut) {
   lexer_next();
   stmt->t = STMT_LET;
   Token var_name = expect(TOK_SYM, "expected variable name");
-  expect(TOK_EQ, "expected '='");
-  stmt->data.let.value = parse_expr(ast);
-  expect(TOK_SEMICOLON, "expected ';'");
+
+  Token middle_tok = lexer_next();
+  if (middle_tok.t == TOK_EQ) {
+    stmt->data.let.value = parse_expr(ast);
+    stmt->data.let.type.t = TYPE_INFER;
+    expect(TOK_SEMICOLON, "expected ';'");
+  } else if (middle_tok.t == TOK_COLON) {
+    parse_type(ast, &stmt->data.let.type);
+    Token equal_tok = lexer_next();
+    if (equal_tok.t == TOK_EQ) {
+      stmt->data.let.value = parse_expr(ast);
+      expect(TOK_SEMICOLON, "expected ';'");
+    } else if (equal_tok.t == TOK_SEMICOLON) {
+      stmt->data.let.value = NULL;
+    } else {
+      log_err_final("expected '=' or ';'");
+    }
+  } else {
+    log_err_final("expected '=' or ':'");
+  }
+
   stmt->data.let.name = var_name.start;
   stmt->data.let.sz = var_name.sz;
   stmt->data.let.mut = mut;

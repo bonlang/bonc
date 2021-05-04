@@ -53,7 +53,9 @@ static void stmt_dump(FILE* file, Stmt* stmt) {
     case STMT_LET:
       fprintf(file, "Stmt_Let: %.*s\n", (int)stmt->data.let.sz,
               (char*)stmt->data.let.name);
-      expr_dump(file, stmt->data.let.value, 1);
+      if (stmt->data.let.value) {
+        expr_dump(file, stmt->data.let.value, 1);
+      }
       break;
     case STMT_EXPR:
       fprintf(file, "Stmt_Expr:\n");

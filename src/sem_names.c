@@ -22,7 +22,9 @@ void resolve_names(AST* ast) {
     Stmt* temp_stmt = vector_idx(&ast->block.stmts, i);
     switch (temp_stmt->t) {
       case STMT_LET:
-        resolve_expr(&ast->global, temp_stmt->data.let.value);
+        if (temp_stmt->data.let.value) {
+          resolve_expr(&ast->global, temp_stmt->data.let.value);
+        }
         break;
       case STMT_EXPR:
         resolve_expr(&ast->global, temp_stmt->data.expr);

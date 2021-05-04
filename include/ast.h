@@ -66,12 +66,13 @@ typedef struct {
 } Block;
 
 typedef struct {
+  const uint8_t* src_base;
   MemPool pool; /* used to allocate structures that belong to this AST */
   Block block;
   Scope global;
 } AST;
 
 void ast_deinit(AST* ast);
-void ast_init(AST* ast);
+void ast_init(AST* ast, const uint8_t* src_base);
 void ast_dump(FILE* file, AST* ast);
 #endif

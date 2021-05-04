@@ -182,10 +182,10 @@ void parse_block(Block* block, AST* ast) {
   }
 }
 
-AST parse_ast() {
+AST parse_ast(const uint8_t* src) {
   AST ret;
 
-  ast_init(&ret);
+  ast_init(&ret, src);
   cur_scope = &ret.global;
   parse_block(&ret.block, &ret);
   return ret;

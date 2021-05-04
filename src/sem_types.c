@@ -15,12 +15,12 @@ static Type* coerce_type(Type* left, Type* right, MemPool* pool) {
     return left;
   }
   if (left->t != right->t) {
-    log_err_final("cannot coerce types");
+    return NULL;
   }
   return left;
 }
 
-static void resolve_expr(Expr* expr, MemPool* pool) {
+static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
   (void)pool;
 
   switch (expr->t) {
@@ -31,10 +31,13 @@ static void resolve_expr(Expr* expr, MemPool* pool) {
       expr->type = expr->data.var->inf.type;
       break;
     case EXPR_BINOP:
-      resolve_expr(expr->data.binop.left, pool);
-      resolve_expr(expr->data.binop.right, pool);
+      resolve_expr(expr->data.binop.left, ast, pool);
+      resolve_expr(expr->data.binop.right, ast, pool);
       expr->type = coerce_type(expr->data.binop.left->type,
                                expr->data.binop.right->type, pool);
+      if (expr->type == NULL) {
+        log_source_err("cannot coerce types", ast->src_base, expr->start);
+      }
   }
 }
 
@@ -44,7 +47,7 @@ void resolve_types(AST* ast) {
     switch (temp_stmt->t) {
       case STMT_LET:
         if (temp_stmt->data.let.value) {
-          resolve_expr(temp_stmt->data.let.value, &ast->pool);
+          resolve_expr(temp_stmt->data.let.value, ast, &ast->pool);
           if (!temp_stmt->data.let.type) {
             temp_stmt->data.let.type = temp_stmt->data.let.value->type;
             if (temp_stmt->data.let.type->t == TYPE_INT) {
@@ -54,7 +57,7 @@ void resolve_types(AST* ast) {
         }
         break;
       case STMT_EXPR:
-        resolve_expr(temp_stmt->data.expr, &ast->pool);
+        resolve_expr(temp_stmt->data.expr, ast, &ast->pool);
         break;
     }
   }

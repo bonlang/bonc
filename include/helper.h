@@ -11,6 +11,9 @@ void log_err_final(const char* fmt, ...);
 
 void log_internal_err(const char* fmt, ...);
 
+void log_source_err(const char* fmt, const uint8_t* base,
+                    const uint8_t* location, ...);
+
 typedef struct {
   uint8_t* base;
   size_t alloc;

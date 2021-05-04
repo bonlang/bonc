@@ -9,6 +9,7 @@
 
 #define RED "\033[0;31m"
 #define BLUE "\033[0;34m"
+#define WHITE_UNDERLINE "\033[1;37m"
 #define RESET "\033[0m"
 
 #define POOL_MAX_SZ 16777216
@@ -37,6 +38,25 @@ void log_internal_err(const char* fmt, ...) {
   fprintf(stderr, BLUE "internal error" RESET ": ");
   vfprintf(stderr, fmt, args);
   fprintf(stderr, "\n");
+  exit(EXIT_FAILURE);
+}
+
+void log_source_err(const char* fmt, const uint8_t* base,
+                    const uint8_t* location, ...) {
+  va_list args;
+  va_start(args, location);
+
+  fprintf(stderr, RED "error" RESET ": ");
+  vfprintf(stderr, fmt, args);
+  fprintf(stderr, "\n");
+  while ((location--) != base && (*location) != '\n')
+    ; /* noop */
+  location++;
+  fprintf(stderr, " | " WHITE_UNDERLINE);
+  for (; (*location) != '\n'; location++) {
+    putc(*location, stderr);
+  }
+  fprintf(stderr, RESET "\n");
   exit(EXIT_FAILURE);
 }
 

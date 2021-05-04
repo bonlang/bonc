@@ -13,6 +13,7 @@ enum {
   TYPE_I32,
   TYPE_I64,
   TYPE_BOOL,
+  TYPE_VOID,
 };
 
 typedef struct Type {
@@ -29,5 +30,6 @@ extern Type I32_const;
 extern Type I64_const;
 extern Type bool_const;
 extern Type int_const;
+extern Type void_const;
 
 #endif

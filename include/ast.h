@@ -72,9 +72,16 @@ typedef struct {
 } Block;
 
 typedef struct {
+  const uint8_t* name;
+  size_t sz;
+  Block body;
+  Type* ret_type;
+} Function;
+
+typedef struct {
   const uint8_t* src_base;
   MemPool pool; /* used to allocate structures that belong to this AST */
-  Block block;
+  Function fn;
   Scope global;
 } AST;
 

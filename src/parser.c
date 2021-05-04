@@ -195,6 +195,7 @@ static void parse_expr_stmt(AST* ast, Stmt* stmt) {
 }
 
 void parse_block(Block* block, AST* ast) {
+  lexer_next(); /* skip '{' */
   vector_init(&block->stmts, sizeof(Stmt), &ast->pool);
   while (1) {
     switch (lexer_peek().t) {
@@ -205,7 +206,7 @@ void parse_block(Block* block, AST* ast) {
         parse_let(ast, vector_alloc(&block->stmts, &ast->pool), 1);
         break;
       /* TODO: Replace this with '}' for proper blocks */
-      case TOK_EOF:
+      case TOK_RCURLY:
         return;
       default:
         parse_expr_stmt(ast, vector_alloc(&block->stmts, &ast->pool));
@@ -214,12 +215,27 @@ void parse_block(Block* block, AST* ast) {
   }
 }
 
+void parse_fn(AST* ast, Function* function) {
+  expect(TOK_FN, "expected 'fn'");
+
+  Token name_tok = expect(TOK_SYM, "expected function name");
+  function->name = name_tok.start;
+  function->sz = name_tok.sz;
+
+  function->ret_type = &void_const;
+  if (lexer_peek().t != TOK_LCURLY) {
+    function->ret_type = parse_type(ast);
+  }
+
+  parse_block(&function->body, ast);
+}
+
 AST parse_ast(const uint8_t* src) {
   AST ret;
 
   ast_init(&ret, src);
   src_base = src;
   cur_scope = &ret.global;
-  parse_block(&ret.block, &ret);
+  parse_fn(&ret, &ret.fn);
   return ret;
 }

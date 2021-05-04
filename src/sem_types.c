@@ -42,8 +42,8 @@ static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
 }
 
 void resolve_types(AST* ast) {
-  for (size_t i = 0; i < ast->block.stmts.items; i++) {
-    Stmt* temp_stmt = vector_idx(&ast->block.stmts, i);
+  for (size_t i = 0; i < ast->fn.body.stmts.items; i++) {
+    Stmt* temp_stmt = vector_idx(&ast->fn.body.stmts, i);
     switch (temp_stmt->t) {
       case STMT_LET:
         if (temp_stmt->data.let.value) {

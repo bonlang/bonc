@@ -68,8 +68,19 @@ static int pick_symbol_type() {
   switch (lex.buf[lex.start]) {
     case 't':
       return match(TOK_TRUE, "true");
+    case 'r':
+      return match(TOK_RETURN, "return");
     case 'f':
-      return match(TOK_FALSE, "false");
+      if (cur_len() < 2) {
+        return TOK_SYM;
+      }
+      switch (lex.buf[lex.start + 1]) {
+        case 'a':
+          return match(TOK_FALSE, "false");
+        case 'n':
+          return match(TOK_FN, "fn");
+      }
+      return TOK_SYM;
     case 'b':
       return match(TOK_BOOL, "bool");
     case 'm':

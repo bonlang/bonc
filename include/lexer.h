@@ -53,6 +53,8 @@ enum {
   /* keywords */
   TOK_LET,
   TOK_MUT,
+  TOK_FN,
+  TOK_RETURN,
 
   /* misc. */
   TOK_EOF,

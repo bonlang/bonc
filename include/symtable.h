@@ -26,7 +26,7 @@ typedef struct Scope {
   ScopeEntry** buckets;
 } Scope;
 
-void scope_init(Scope* scope, MemPool* pool, Scope* up);
+Scope* scope_init(MemPool* pool, Scope* up);
 
 /* returns NULL if already found */
 ScopeEntry* scope_insert(MemPool* pool, Scope* scope, const uint8_t* name,

@@ -206,7 +206,8 @@ static void parse_return(AST* ast, Stmt* stmt) {
   }
 }
 
-void parse_block(Block* block, AST* ast) {
+void parse_block(Block* block, AST* ast, Scope* scope) {
+  cur_scope = scope;
   lexer_next(); /* skip '{' */
   vector_init(&block->stmts, sizeof(Stmt), &ast->pool);
   while (1) {
@@ -228,18 +229,7 @@ void parse_block(Block* block, AST* ast) {
         break;
     }
   }
-}
-
-void parse_param(AST* ast, Param* param) {
-  Token name_tok = expect(TOK_SYM, "expected param name");
-  param->name = name_tok.start;
-  param->sz = name_tok.sz;
-
-  expect(TOK_COLON, "expected ':'");
-  param->type = parse_type(ast);
-  if (lexer_peek().t == TOK_COMMA) {
-    lexer_next();
-  }
+  cur_scope = cur_scope->up;
 }
 
 void parse_fn(AST* ast, Function* function) {
@@ -251,8 +241,21 @@ void parse_fn(AST* ast, Function* function) {
 
   expect(TOK_LPAREN, "expected '('");
   vector_init(&function->params, sizeof(Param), &ast->pool);
+
+  Scope* new_scope = scope_init(&ast->pool, cur_scope);
   while (lexer_peek().t != TOK_RPAREN) {
-    parse_param(ast, vector_alloc(&function->params, &ast->pool));
+    Param* param = vector_alloc(&function->params, &ast->pool);
+    Token name_tok = expect(TOK_SYM, "expected param name");
+    param->name = name_tok.start;
+    param->sz = name_tok.sz;
+
+    expect(TOK_COLON, "expected ':'");
+    param->type = parse_type(ast);
+    VarInfo info = {.mut = 0, .type = param->type};
+    scope_insert(&ast->pool, new_scope, param->name, param->sz, info);
+    if (lexer_peek().t == TOK_COMMA) {
+      lexer_next();
+    }
   }
   lexer_next(); /* skip ')' */
 
@@ -261,7 +264,8 @@ void parse_fn(AST* ast, Function* function) {
     function->ret_type = parse_type(ast);
   }
 
-  parse_block(&function->body, ast);
+  parse_block(&function->body, ast, new_scope);
+  function->scope = new_scope;
 }
 
 AST parse_ast(const uint8_t* src) {
@@ -269,7 +273,7 @@ AST parse_ast(const uint8_t* src) {
 
   ast_init(&ret, src);
   src_base = src;
-  cur_scope = &ret.global;
+  cur_scope = ret.global;
   parse_fn(&ret, &ret.fn);
   return ret;
 }

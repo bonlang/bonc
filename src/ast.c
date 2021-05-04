@@ -20,7 +20,7 @@ void ast_deinit(AST* ast) { mempool_deinit(&ast->pool); }
 void ast_init(AST* ast, const uint8_t* src) {
   ast->src_base = src;
   mempool_init(&ast->pool);
-  scope_init(&ast->global, &ast->pool, NULL);
+  ast->global = scope_init(&ast->pool, NULL);
 }
 
 static void print_indent(FILE* file, int indent) {

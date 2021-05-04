@@ -85,13 +85,14 @@ typedef struct {
   Block body;
   Vector params; /* Param */
   Type* ret_type;
+  Scope* scope;
 } Function;
 
 typedef struct {
   const uint8_t* src_base;
   MemPool pool; /* used to allocate structures that belong to this AST */
   Function fn;
-  Scope global;
+  Scope* global;
 } AST;
 
 void ast_deinit(AST* ast);

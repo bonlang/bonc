@@ -6,11 +6,13 @@
 
 #define MIN(a, b) (a > b ? b : a)
 
-void scope_init(Scope* scope, MemPool* pool, Scope* up) {
+Scope* scope_init(MemPool* pool, Scope* up) {
+  Scope* scope = mempool_alloc(pool, sizeof(Scope));
   scope->nbuckets = INIT_BUCKETS;
   scope->up = up;
   scope->buckets = mempool_alloc(pool, sizeof(ScopeEntry*) * scope->nbuckets);
   memset(scope->buckets, 0, sizeof(ScopeEntry*) * scope->nbuckets);
+  return scope;
 }
 
 static inline size_t hash_str(const uint8_t* name, size_t sz) {

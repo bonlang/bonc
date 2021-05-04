@@ -17,18 +17,19 @@ static void resolve_expr(AST* ast, Scope* scope, Expr* expr) {
   }
 }
 
-void resolve_names(AST* ast) {
-  for (size_t i = 0; i < ast->fn.body.stmts.items; i++) {
-    Stmt* temp_stmt = vector_idx(&ast->fn.body.stmts, i);
+void resolve_fn(AST* ast, Function* fn) {
+  for (size_t i = 0; i < fn->body.stmts.items; i++) {
+    Stmt* temp_stmt = vector_idx(&fn->body.stmts, i);
     switch (temp_stmt->t) {
       case STMT_LET:
         if (temp_stmt->data.let.value) {
-          resolve_expr(ast, &ast->global, temp_stmt->data.let.value);
+          resolve_expr(ast, fn->scope, temp_stmt->data.let.value);
         }
         break;
       case STMT_EXPR:
-        resolve_expr(ast, &ast->global, temp_stmt->data.expr);
+        resolve_expr(ast, fn->scope, temp_stmt->data.expr);
         break;
     }
   }
 }
+void resolve_names(AST* ast) { resolve_fn(ast, &ast->fn); }

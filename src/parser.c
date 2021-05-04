@@ -230,12 +230,31 @@ void parse_block(Block* block, AST* ast) {
   }
 }
 
+void parse_param(AST* ast, Param* param) {
+  Token name_tok = expect(TOK_SYM, "expected param name");
+  param->name = name_tok.start;
+  param->sz = name_tok.sz;
+
+  expect(TOK_COLON, "expected ':'");
+  param->type = parse_type(ast);
+  if (lexer_peek().t == TOK_COMMA) {
+    lexer_next();
+  }
+}
+
 void parse_fn(AST* ast, Function* function) {
   expect(TOK_FN, "expected 'fn'");
 
   Token name_tok = expect(TOK_SYM, "expected function name");
   function->name = name_tok.start;
   function->sz = name_tok.sz;
+
+  expect(TOK_LPAREN, "expected '('");
+  vector_init(&function->params, sizeof(Param), &ast->pool);
+  while (lexer_peek().t != TOK_RPAREN) {
+    parse_param(ast, vector_alloc(&function->params, &ast->pool));
+  }
+  lexer_next(); /* skip ')' */
 
   function->ret_type = &void_const;
   if (lexer_peek().t != TOK_LCURLY) {

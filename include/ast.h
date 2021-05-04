@@ -74,9 +74,16 @@ typedef struct {
 } Block;
 
 typedef struct {
+  Type* type;
+  const uint8_t* name;
+  size_t sz;
+} Param;
+
+typedef struct {
   const uint8_t* name;
   size_t sz;
   Block body;
+  Vector params; /* Param */
   Type* ret_type;
 } Function;
 

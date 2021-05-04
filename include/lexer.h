@@ -32,6 +32,7 @@ enum {
   /* punctuation */
   TOK_SEMICOLON,
   TOK_COLON,
+  TOK_COMMA,
 
   /* literals/symbols */
   TOK_INT,

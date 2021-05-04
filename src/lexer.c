@@ -200,6 +200,8 @@ static Token lexer_fetch() {
       return make_token(TOK_SEMICOLON);
     case ':':
       return make_token(TOK_COLON);
+    case ',':
+      return make_token(TOK_COMMA);
   }
   log_source_err("unexpected char '%c'", lex.buf, lex.buf + lex.start, c);
   return make_symbol(TOK_EOF); /* unreachable */

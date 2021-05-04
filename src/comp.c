@@ -64,7 +64,7 @@ int main(int argc, char* argv[]) {
 
   lexer_init(in_file, in_size);
 
-  AST ast = parse_ast();
+  AST ast = parse_ast(in_file);
   resolve_names(&ast);
   resolve_types(&ast);
   ast_dump(stdout, &ast);

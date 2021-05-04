@@ -49,8 +49,10 @@ void log_source_err(const char* fmt, const uint8_t* base,
   fprintf(stderr, RED "error" RESET ": ");
   vfprintf(stderr, fmt, args);
   fprintf(stderr, "\n");
-  while ((location--) != base && (*location) != '\n')
-    ; /* noop */
+  while ((location--) != base && (*location) != '\n') {
+  }
+
+  ; /* noop */
   location++;
   fprintf(stderr, " | " WHITE_UNDERLINE);
   for (; (*location) != '\n'; location++) {

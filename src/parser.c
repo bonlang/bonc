@@ -6,6 +6,7 @@
 #include "lexer.h"
 
 static Scope* cur_scope;
+const uint8_t* src_base;
 
 static Expr* make_expr(AST* ast, int t, const uint8_t* start, size_t sz) {
   Expr* ret = mempool_alloc(&ast->pool, sizeof(Expr));
@@ -19,7 +20,7 @@ static Expr* make_expr(AST* ast, int t, const uint8_t* start, size_t sz) {
 static Token expect(int t, const char* err_msg) {
   Token ret = lexer_next();
   if (ret.t != t) {
-    log_err_final(err_msg);
+    log_source_err(err_msg, src_base, ret.start);
   }
   return ret;
 }
@@ -39,7 +40,7 @@ static Expr* parse_primary(AST* ast) {
       return ret;
     }
     default:
-      log_err_final("expected expression");
+      log_source_err("expected expression", src_base, tok.start);
       return NULL; /* unreachable */
   }
 }
@@ -116,7 +117,7 @@ static Type* parse_type(AST* ast) {
     case TOK_BOOL:
       return &bool_const;
   }
-  log_err_final("expected type name");
+  log_source_err("expected type name", src_base, type_tok.start);
   return NULL;
 }
 static void parse_let(AST* ast, Stmt* stmt, int mut) {
@@ -138,10 +139,10 @@ static void parse_let(AST* ast, Stmt* stmt, int mut) {
     } else if (equal_tok.t == TOK_SEMICOLON) {
       stmt->data.let.value = NULL;
     } else {
-      log_err_final("expected '=' or ';'");
+      log_source_err("expected '=' or ';'", src_base, equal_tok.start);
     }
   } else {
-    log_err_final("expected '=' or ':'");
+    log_source_err("expected '=' or ':'", src_base, middle_tok.start);
   }
 
   stmt->data.let.name = var_name.start;
@@ -151,8 +152,8 @@ static void parse_let(AST* ast, Stmt* stmt, int mut) {
   ScopeEntry* entry =
       scope_insert(&ast->pool, cur_scope, var_name.start, var_name.sz, info);
   if (entry == NULL) {
-    log_err_final("redeclaration of variable '%.*s'", (int)var_name.sz,
-                  (char*)var_name.start);
+    log_source_err("redeclaration of variable '%.*s'", src_base, var_name.start,
+                   (int)var_name.sz, (char*)var_name.start);
   }
 }
 
@@ -186,6 +187,7 @@ AST parse_ast(const uint8_t* src) {
   AST ret;
 
   ast_init(&ret, src);
+  src_base = src;
   cur_scope = &ret.global;
   parse_block(&ret.block, &ret);
   return ret;

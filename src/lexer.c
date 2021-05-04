@@ -162,7 +162,7 @@ static Token lexer_fetch() {
     case ':':
       return make_token(TOK_COLON);
   }
-  log_err_final("unexpected char '%c'", c);
+  log_source_err("unexpected char '%c'", lex.buf, lex.buf + lex.start, c);
   return make_symbol(TOK_EOF); /* unreachable */
 }
 

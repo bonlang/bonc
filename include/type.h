@@ -2,8 +2,7 @@
 #define TYPE_H
 
 enum {
-  TYPE_INFER, /* used in let stmt to say the type is inferred */
-  TYPE_INT,   /* integer literals */
+  TYPE_INT, /* integer literals */
   TYPE_U8,
   TYPE_U16,
   TYPE_U32,

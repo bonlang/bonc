@@ -20,6 +20,9 @@ enum {
   BINOP_LE,
   BINOP_GREQ,
   BINOP_LEEQ,
+
+  /* only used by coerce_type */
+  BINOP_ASSIGN,
 };
 
 enum {
@@ -54,12 +57,15 @@ enum {
 
 typedef struct {
   int t;
+  const uint8_t* start;
+  size_t sz;
 
   union {
     struct {
       const uint8_t* name;
       size_t sz;
       int mut;
+      ScopeEntry* var;
       Type* type;
       Expr* value; /* null if variable is not initialized on declaration */
     } let;

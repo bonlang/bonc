@@ -6,18 +6,44 @@ static inline int is_integer_type(int t) {
          t == TYPE_INT;
 }
 
-static Type* coerce_type(Type* left, Type* right, MemPool* pool) {
+static Type* coerce_type(int op, Type* left, Type* right, MemPool* pool) {
   (void)pool;
-  if (left->t == TYPE_INT && is_integer_type(right->t)) {
-    return right;
+  switch (op) {
+    case BINOP_ADD:
+    case BINOP_SUB:
+    case BINOP_MUL:
+    case BINOP_DIV:
+    case BINOP_ASSIGN:
+      if (left->t == TYPE_INT && is_integer_type(right->t)) {
+        return right;
+      }
+      if (right->t == TYPE_INT && is_integer_type(left->t)) {
+        return left;
+      }
+      if (left->t != right->t) {
+        return NULL;
+      }
+      return left;
+    case BINOP_NEQ:
+    case BINOP_EQ:
+    case BINOP_GR:
+    case BINOP_GREQ:
+    case BINOP_LE:
+    case BINOP_LEEQ:
+      if (left->t == TYPE_INT && is_integer_type(right->t)) {
+        return &bool_const;
+      }
+      if (right->t == TYPE_INT && is_integer_type(left->t)) {
+        return &bool_const;
+      }
+      if (left->t != right->t) {
+        return NULL;
+      }
+      return &bool_const;
+    default:
+      log_internal_err("invalid binary op");
+      return NULL;
   }
-  if (right->t == TYPE_INT && is_integer_type(left->t)) {
-    return left;
-  }
-  if (left->t != right->t) {
-    return NULL;
-  }
-  return left;
 }
 
 static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
@@ -33,7 +59,7 @@ static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
     case EXPR_BINOP:
       resolve_expr(expr->data.binop.left, ast, pool);
       resolve_expr(expr->data.binop.right, ast, pool);
-      expr->type = coerce_type(expr->data.binop.left->type,
+      expr->type = coerce_type(expr->data.binop.op, expr->data.binop.left->type,
                                expr->data.binop.right->type, pool);
       if (expr->type == NULL) {
         log_source_err("cannot coerce types", ast->src_base, expr->start);
@@ -46,13 +72,21 @@ void resolve_types(AST* ast) {
     Stmt* temp_stmt = vector_idx(&ast->fn.body.stmts, i);
     switch (temp_stmt->t) {
       case STMT_LET:
+        /* is this a composite assignment? */
         if (temp_stmt->data.let.value) {
           resolve_expr(temp_stmt->data.let.value, ast, &ast->pool);
+          Type* type = temp_stmt->data.let.value->type;
+          /* is this an inferred assignment? */
           if (!temp_stmt->data.let.type) {
-            temp_stmt->data.let.type = temp_stmt->data.let.value->type;
+            temp_stmt->data.let.type = type;
+            temp_stmt->data.let.var->inf.type = type; /* set the symbol table */
             if (temp_stmt->data.let.type->t == TYPE_INT) {
               log_err_final("cannot infer type from integer literals");
             }
+          } else if (coerce_type(BINOP_ASSIGN, type, temp_stmt->data.let.type,
+                                 &ast->pool) == NULL) {
+            log_source_err("cannot coerce assignment", ast->src_base,
+                           temp_stmt->start);
           }
         }
         break;

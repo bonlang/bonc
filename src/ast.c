@@ -57,8 +57,8 @@ static const char* str_of_binop(int op) {
 }
 
 static const char* type_to_str[] = {
-    "Type_Infer", "Type_Int", "Type_U8",  "Type_U16", "Type_U32",  "Type_U64",
-    "Type_I8",    "Type_I16", "Type_I32", "Type_I64", "Type_Bool", "Type_Void"};
+    "Type_Int", "Type_U8",  "Type_U16", "Type_U32",  "Type_U64", "Type_I8",
+    "Type_I16", "Type_I32", "Type_I64", "Type_Bool", "Type_Void"};
 
 static void type_dump(FILE* file, Type* type, int indent) {
   print_indent(file, indent);

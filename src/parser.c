@@ -152,7 +152,7 @@ static Type* parse_type(AST* ast) {
 }
 
 static void parse_let(AST* ast, Stmt* stmt, int mut) {
-  lexer_next();
+  stmt->start = lexer_next().start;
   stmt->t = STMT_LET;
   Token var_name = expect(TOK_SYM, "expected variable name");
 
@@ -186,6 +186,7 @@ static void parse_let(AST* ast, Stmt* stmt, int mut) {
     log_source_err("redeclaration of variable '%.*s'", src_base, var_name.start,
                    (int)var_name.sz, (char*)var_name.start);
   }
+  stmt->data.let.var = entry;
 }
 
 static void parse_expr_stmt(AST* ast, Stmt* stmt) {

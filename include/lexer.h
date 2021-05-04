@@ -22,10 +22,24 @@ enum {
 
   /* punctuation */
   TOK_SEMICOLON,
+  TOK_COLON,
 
   /* literals/symbols */
   TOK_INT,
+  TOK_TRUE,
+  TOK_FALSE,
   TOK_SYM,
+
+  /* type names */
+  TOK_I8,
+  TOK_I16,
+  TOK_I32,
+  TOK_I64,
+  TOK_U8,
+  TOK_U16,
+  TOK_U32,
+  TOK_U64,
+  TOK_BOOL,
 
   /* keywords */
   TOK_LET,

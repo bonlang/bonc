@@ -63,13 +63,48 @@ static inline int match(int t, const char* name) {
 
 static int pick_symbol_type() {
   switch (lex.buf[lex.start]) {
+    case 't':
+      return match(TOK_TRUE, "true");
+    case 'f':
+      return match(TOK_FALSE, "false");
+    case 'b':
+      return match(TOK_BOOL, "bool");
     case 'm':
       return match(TOK_MUT, "mut");
     case 'l':
       return match(TOK_LET, "let");
-    default:
-      return TOK_SYM;
+    case 'u':
+      if (cur_len() < 2) {
+        return TOK_SYM;
+      }
+      switch (lex.buf[lex.start + 1]) {
+        case '8':
+          return match(TOK_U8, "u8");
+        case '1':
+          return match(TOK_U8, "u16");
+        case '3':
+          return match(TOK_U8, "u32");
+        case '6':
+          return match(TOK_U8, "u64");
+      }
+      break;
+    case 'i':
+      if (cur_len() < 2) {
+        return TOK_SYM;
+      }
+      switch (lex.buf[lex.start + 1]) {
+        case '8':
+          return match(TOK_I8, "i8");
+        case '1':
+          return match(TOK_I8, "i16");
+        case '3':
+          return match(TOK_I8, "i32");
+        case '6':
+          return match(TOK_I8, "i64");
+      }
+      break;
   }
+  return TOK_SYM;
 }
 
 static Token make_symbol() {
@@ -124,6 +159,8 @@ static Token lexer_fetch() {
       return make_token(TOK_RBRACK);
     case ';':
       return make_token(TOK_SEMICOLON);
+    case ':':
+      return make_token(TOK_COLON);
   }
   log_err_final("unexpected char '%c'", c);
   return make_symbol(TOK_EOF); /* unreachable */

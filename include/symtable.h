@@ -9,8 +9,11 @@
 
 typedef struct {
   int mut;
+  int64_t id; /* used in IR generation */
   struct Type* type;
 } VarInfo;
+
+VarInfo make_var_info(int mut, struct Type* type);
 
 typedef struct ScopeEntry {
   SourcePosition pos;

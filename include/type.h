@@ -31,4 +31,6 @@ extern Type bool_const;
 extern Type int_const;
 extern Type void_const;
 
+int is_unsigned(int t);
+int is_signed(int t);
 #endif

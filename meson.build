@@ -9,6 +9,8 @@ src = [
   'src/sem_names.c',
   'src/sem_types.c',
   'src/sem_returns.c',
+  'src/ssa.c',
+  'src/ir_gen.c',
   'src/bcc2.c',
 ]
 

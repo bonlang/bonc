@@ -6,6 +6,11 @@
 
 #define MIN(a, b) (a > b ? b : a)
 
+VarInfo make_var_info(int mut, struct Type* type) {
+  VarInfo inf = {.mut = mut, .type = type, .id = 0};
+  return inf;
+}
+
 Scope* scope_init(MemPool* pool, Scope* up) {
   Scope* scope = mempool_alloc(pool, sizeof(Scope));
   scope->nbuckets = INIT_BUCKETS;

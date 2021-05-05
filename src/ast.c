@@ -118,3 +118,10 @@ static void fn_dump(FILE* file, Function* fn) {
 
 void ast_dump(FILE* file, AST* ast) { fn_dump(file, &ast->fn); }
 
+int is_unsigned(int t) {
+  return t == TYPE_U8 || t == TYPE_U16 || t == TYPE_U32 || t == TYPE_U64;
+}
+
+int is_signed(int t) {
+  return t == TYPE_I8 || t == TYPE_I16 || t == TYPE_I32 || t == TYPE_I64;
+}

@@ -8,9 +8,11 @@
 #include <sys/types.h>
 
 #include "helper.h"
+#include "ir_gen.h"
 #include "lexer.h"
 #include "parser.h"
 #include "semantics.h"
+#include "ssa.h"
 
 int main(int argc, char* argv[]) {
   int c, invalid_args = 0;
@@ -68,7 +70,16 @@ int main(int argc, char* argv[]) {
   resolve_names(&ast);
   resolve_types(&ast);
   check_returns(&ast);
+
+  printf("AST_DUMP:\n");
   ast_dump(stdout, &ast);
+  printf("\n");
+
+  SSA_BBlock block;
+  translate_function(&ast.fn, &block, &ast.pool);
+
+  printf("IR_DUMP:\n");
+  bblock_dump(stdout, &block);
 
   ast_deinit(&ast);
 

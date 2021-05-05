@@ -27,6 +27,11 @@ SourcePosition make_pos(const uint8_t* buf, size_t sz) {
   return ret;
 }
 
+int64_t next_reg() {
+  static int64_t reg = 1;
+  return reg++;
+}
+
 void log_err(const char* fmt, ...) {
   va_list args;
   va_start(args, fmt);

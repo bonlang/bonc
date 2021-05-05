@@ -63,8 +63,21 @@ enum {
   TOK_EOF,
 };
 
+enum {
+  INTLIT_I8,
+  INTLIT_U8,
+  INTLIT_I16,
+  INTLIT_U16,
+  INTLIT_I32,
+  INTLIT_U32,
+  INTLIT_I64,
+  INTLIT_U64,
+  INTLIT_I64_NONE,
+};
+
 typedef struct {
   int t;
+  int intlit_type;
   SourcePosition pos;
 } Token;
 

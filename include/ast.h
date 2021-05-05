@@ -42,7 +42,11 @@ typedef struct Expr {
       struct Expr* right;
       int op;
     } binop;
-    struct ScopeEntry* var;
+    ScopeEntry* var;
+    struct {
+      SourcePosition literal;
+      int type;
+    } intlit;
   } data;
 
 } Expr;

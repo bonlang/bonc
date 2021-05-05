@@ -129,11 +129,37 @@ static Token make_symbol() {
   return make_token(pick_symbol_type());
 }
 
+static int next_matches(const char* text) {
+  size_t len = strlen(text);
+  if (lex.end + len >= lex.sz) {
+    return 0;
+  }
+  if (strncmp(text, (char*)lex.buf + lex.end, len) == 0) {
+    lex.end += len;
+    return 1;
+  }
+  return 0;
+}
+
+static inline Token make_intlit(int type) {
+  Token tok = make_token(TOK_INT);
+  tok.intlit_type = type;
+  return tok;
+}
+
 static Token make_int() {
   while (!is_eof() && isdigit(peek_c())) {
     next_c();
   }
-  return make_token(TOK_INT);
+  if (next_matches("i8")) return make_intlit(INTLIT_I8);
+  if (next_matches("u8")) return make_intlit(INTLIT_U8);
+  if (next_matches("i16")) return make_intlit(INTLIT_I16);
+  if (next_matches("u16")) return make_intlit(INTLIT_U16);
+  if (next_matches("i32")) return make_intlit(INTLIT_I32);
+  if (next_matches("u32")) return make_intlit(INTLIT_U32);
+  if (next_matches("i64")) return make_intlit(INTLIT_I64);
+  if (next_matches("u64")) return make_intlit(INTLIT_U64);
+  return make_intlit(INTLIT_I64_NONE);
 }
 
 static Token match_character(int c, int t1, int t2) {

@@ -55,7 +55,7 @@ static SSA_Obj translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
   switch (expr->t) {
     case EXPR_INT:
       ret.t = OBJ_INT;
-      ret.data.intnum = expr->pos;
+      ret.data.intnum = expr->data.intlit.literal;
       return ret;
     case EXPR_VAR:
       ret.t = OBJ_REG;

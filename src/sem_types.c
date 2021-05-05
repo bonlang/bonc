@@ -35,12 +35,15 @@ Type* coerce_type(int op, Type** _left, Type** _right, MemPool* pool) {
   }
 }
 
+static Type* intlit_type_to_type[] = {&I8_const,  &U8_const,  &I16_const,
+                                      &U16_const, &I32_const, &U32_const,
+                                      &I64_const, &U64_const, &I64_const};
+
 static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
   (void)pool;
-
   switch (expr->t) {
     case EXPR_INT:
-      expr->type = &I32_const;
+      expr->type = intlit_type_to_type[expr->data.intlit.type];
       break;
     case EXPR_VAR:
       expr->type = expr->data.var->inf.type;

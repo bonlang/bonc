@@ -25,11 +25,22 @@ static Token expect(int t, const char* err_msg) {
 
 static Expr* parse_expr(AST* ast);
 
+static const size_t intlit_pos_sz[] = {2, 2, 3, 3, 3, 3, 3, 3, 0};
+
+static inline Expr* make_intlit_expr(AST* ast, SourcePosition whole_pos,
+                                     int t) {
+  Expr* ret = make_expr(ast, EXPR_INT, whole_pos);
+  ret->data.intlit.literal = whole_pos;
+  ret->data.intlit.literal.sz -= intlit_pos_sz[t];
+  ret->data.intlit.type = t;
+  return ret;
+}
+
 static Expr* parse_primary(AST* ast) {
   Token tok = lexer_next();
   switch (tok.t) {
     case TOK_INT:
-      return make_expr(ast, EXPR_INT, tok.pos);
+      return make_intlit_expr(ast, tok.pos, tok.intlit_type);
     case TOK_SYM:
       return make_expr(ast, EXPR_VAR, tok.pos);
     case TOK_LPAREN: {

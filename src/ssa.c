@@ -59,7 +59,6 @@ static void inst_dump(FILE* file, SSA_Inst* inst) {
     case INST_RET:
       fprintf(file, "ret ");
       obj_dump(file, &inst->data.ret);
-      fprintf(file, "\n");
       break;
     default:
       log_internal_err("cannot print instruction: %d", inst->t);

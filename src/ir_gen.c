@@ -77,9 +77,10 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
   }
 }
 
-void translate_function(Function* fn, SSA_BBlock* block, MemPool* pool) {
-  bblock_init(block, pool);
+SSA_BBlock* translate_function(Function* fn, MemPool* pool) {
+  SSA_BBlock* block = bblock_init(pool);
   for (size_t i = 0; i < fn->body.stmts.items; i++) {
     translate_stmt(vector_idx(&fn->body.stmts, i), fn->scope, block, pool);
   }
+  return block;
 }

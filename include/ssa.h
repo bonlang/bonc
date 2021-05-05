@@ -48,7 +48,7 @@ typedef struct BBlock {
   struct BBlock* next;
 } SSA_BBlock;
 
-void bblock_init(SSA_BBlock* block, MemPool* pool);
+SSA_BBlock* bblock_init(MemPool* pool);
 SSA_Inst* bblock_append(SSA_BBlock* block, MemPool* pool);
 void bblock_finish(SSA_BBlock* block, SSA_BBlock* next);
 void bblock_dump(FILE* file, SSA_BBlock* block);

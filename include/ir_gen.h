@@ -4,6 +4,6 @@
 #include "ast.h"
 #include "ssa.h"
 
-void translate_function(Function* fn, SSA_BBlock* block, MemPool* pool);
+SSA_BBlock* translate_function(Function* fn, MemPool* pool);
 
 #endif

@@ -2,11 +2,13 @@
 
 #include <inttypes.h>
 
-void bblock_init(SSA_BBlock* block, MemPool* pool) {
+SSA_BBlock* bblock_init(MemPool* pool) {
   static int64_t id_cnt = 0;
+  SSA_BBlock* block = mempool_alloc(pool, sizeof(SSA_BBlock));
   block->id = id_cnt++;
   vector_init(&block->insts, sizeof(SSA_Inst), pool);
   block->next = NULL;
+  return block;
 }
 
 SSA_Inst* bblock_append(SSA_BBlock* block, MemPool* pool) {

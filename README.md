@@ -7,8 +7,11 @@ Take two on compiler for beans.
 All that is needed is ``meson`` and ``ninja``.
 
 ``mkdir build``
+
 ``meson setup build``
+
 ``cd build``
+
 ``ninja``
 
 ## Usage

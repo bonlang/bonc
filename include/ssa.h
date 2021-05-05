@@ -29,8 +29,16 @@ enum {
   INST_COPY,
 };
 
+enum {
+  SZ_BYTE,
+  SZ_HWORD,
+  SZ_WORD,
+  SZ_QWORD,
+};
+
 typedef struct {
   int t;
+  int sz;
   SSA_Obj result;
   union {
     struct {

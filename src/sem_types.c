@@ -2,8 +2,7 @@
 
 static inline int is_integer_type(int t) {
   return t == TYPE_U8 || t == TYPE_U16 || t == TYPE_U32 || t == TYPE_U64 ||
-         t == TYPE_I8 || t == TYPE_I16 || t == TYPE_I32 || t == TYPE_I64 ||
-         t == TYPE_INT;
+         t == TYPE_I8 || t == TYPE_I16 || t == TYPE_I32 || t == TYPE_I64;
 }
 
 Type* coerce_type(int op, Type** _left, Type** _right, MemPool* pool) {
@@ -16,14 +15,6 @@ Type* coerce_type(int op, Type** _left, Type** _right, MemPool* pool) {
     case BINOP_MUL:
     case BINOP_DIV:
     case BINOP_ASSIGN:
-      if (left->t == TYPE_INT && is_integer_type(right->t)) {
-        *_left = right;
-        return right;
-      }
-      if (right->t == TYPE_INT && is_integer_type(left->t)) {
-        *_right = left;
-        return left;
-      }
       if (left->t != right->t) {
         return NULL;
       }
@@ -34,14 +25,6 @@ Type* coerce_type(int op, Type** _left, Type** _right, MemPool* pool) {
     case BINOP_GREQ:
     case BINOP_LE:
     case BINOP_LEEQ:
-      if (left->t == TYPE_INT && is_integer_type(right->t)) {
-        *_left = right;
-        return &bool_const;
-      }
-      if (right->t == TYPE_INT && is_integer_type(left->t)) {
-        *_right = left;
-        return &bool_const;
-      }
       if (left->t != right->t) {
         return NULL;
       }
@@ -57,7 +40,7 @@ static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
 
   switch (expr->t) {
     case EXPR_INT:
-      expr->type = &int_const;
+      expr->type = &I32_const;
       break;
     case EXPR_VAR:
       expr->type = expr->data.var->inf.type;
@@ -87,9 +70,6 @@ void resolve_types(AST* ast) {
           if (!temp_stmt->data.let.type) {
             temp_stmt->data.let.type = type;
             temp_stmt->data.let.var->inf.type = type; /* set the symbol table */
-            if (temp_stmt->data.let.type->t == TYPE_INT) {
-              log_err_final("cannot infer type from integer literals");
-            }
           } else if (coerce_type(BINOP_ASSIGN, &temp_stmt->data.let.value->type,
                                  &temp_stmt->data.let.type,
                                  &ast->pool) == NULL) {

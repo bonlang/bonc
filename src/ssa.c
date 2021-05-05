@@ -35,12 +35,13 @@ static void obj_dump(FILE* file, SSA_Obj* obj) {
 }
 
 const char* binop_name_tbl[] = {"add", "sub", "mul", "idiv", "udiv"};
+const char sz_name_tbl[] = {'b', 'h', 'w', 'q'};
 
 static void inst_dump(FILE* file, SSA_Inst* inst) {
   switch (inst->t) {
     case INST_COPY:
       obj_dump(file, &inst->result);
-      fprintf(file, " = copy ");
+      fprintf(file, " =%c copy ", sz_name_tbl[inst->sz]);
       obj_dump(file, &inst->data.copy);
       break;
     case INST_ADD:
@@ -49,7 +50,8 @@ static void inst_dump(FILE* file, SSA_Inst* inst) {
     case INST_IDIV:
     case INST_UDIV:
       obj_dump(file, &inst->result);
-      fprintf(file, " = %s ", binop_name_tbl[inst->t - INST_ADD]);
+      fprintf(file, " =%c %s ", sz_name_tbl[inst->sz],
+              binop_name_tbl[inst->t - INST_ADD]);
       obj_dump(file, &inst->data.binop.op1);
       fprintf(file, " ");
       obj_dump(file, &inst->data.binop.op2);

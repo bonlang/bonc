@@ -12,7 +12,6 @@ Type I16_const = {.t = TYPE_I16};
 Type I32_const = {.t = TYPE_I32};
 Type I64_const = {.t = TYPE_I64};
 Type bool_const = {.t = TYPE_BOOL};
-Type int_const = {.t = TYPE_INT};
 Type void_const = {.t = TYPE_VOID};
 
 void ast_deinit(AST* ast) { mempool_deinit(&ast->pool); }

@@ -2,6 +2,25 @@
 
 #include <stdlib.h>
 
+static int type_sz(int ast_type) {
+  switch (ast_type) {
+    case TYPE_I8:
+    case TYPE_U8:
+      return SZ_BYTE;
+    case TYPE_I16:
+    case TYPE_U16:
+      return SZ_HWORD;
+    case TYPE_I32:
+    case TYPE_U32:
+      return SZ_WORD;
+    case TYPE_I64:
+    case TYPE_U64:
+      return SZ_QWORD;
+  }
+  log_internal_err("invalid type %d", ast_type);
+  return 0;
+}
+
 static int get_sym_table_reg(ScopeEntry* entry) {
   if (entry->inf.id == 0) {
     return entry->inf.id = next_reg();
@@ -46,6 +65,7 @@ static SSA_Obj translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
       SSA_Obj obj1 = translate_expr(expr->data.binop.left, scope, block, pool);
       SSA_Obj obj2 = translate_expr(expr->data.binop.right, scope, block, pool);
       SSA_Inst* inst = bblock_append(block, pool);
+      inst->sz = type_sz(expr->type->t);
       inst->t = translate_binop(expr->type->t, expr->data.binop.op);
       inst->data.binop.op1 = obj1;
       inst->data.binop.op2 = obj2;
@@ -66,6 +86,7 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
       if (stmt->data.let.value != NULL) {
         SSA_Obj obj = translate_expr(stmt->data.let.value, scope, block, pool);
         SSA_Inst* inst = bblock_append(block, pool);
+        inst->sz = type_sz(stmt->data.let.value->type->t);
         inst->t = INST_COPY;
         inst->data.copy = obj;
         inst->result.t = OBJ_REG;

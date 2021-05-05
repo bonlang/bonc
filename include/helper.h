@@ -19,7 +19,11 @@ void log_err(const char* fmt, ...);
 /* exits after printing message */
 void log_err_final(const char* fmt, ...);
 
-void log_internal_err(const char* fmt, ...);
+#define log_internal_err(fmt, ...) \
+  (actual_log_internal_err(fmt, __FILE__, __LINE__, __VA_ARGS__))
+
+void actual_log_internal_err(const char* fmt, const char* file, size_t line,
+                             ...);
 
 void log_source_err(const char* fmt, const uint8_t* base, SourcePosition, ...);
 

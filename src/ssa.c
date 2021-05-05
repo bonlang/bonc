@@ -35,7 +35,7 @@ static void obj_dump(FILE* file, SSA_Obj* obj) {
 }
 
 const char* binop_name_tbl[] = {"add", "sub", "mul", "idiv", "udiv"};
-const char sz_name_tbl[] = {'b', 'h', 'w', 'q'};
+const char sz_name_tbl[] = {' ', 'b', 'h', 'w', 'q'};
 
 static void inst_dump(FILE* file, SSA_Inst* inst) {
   switch (inst->t) {
@@ -56,8 +56,13 @@ static void inst_dump(FILE* file, SSA_Inst* inst) {
       fprintf(file, " ");
       obj_dump(file, &inst->data.binop.op2);
       break;
+    case INST_RET:
+      fprintf(file, "ret ");
+      obj_dump(file, &inst->data.ret);
+      fprintf(file, "\n");
+      break;
     default:
-      log_internal_err("cannot print instruction: %d\n", inst->t);
+      log_internal_err("cannot print instruction: %d", inst->t);
   }
   fprintf(file, "\n");
 }

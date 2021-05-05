@@ -55,7 +55,8 @@ static Expr* parse_primary(AST* ast) {
 }
 
 static int parse_binop() {
-  switch (lexer_next().t) {
+  Token tok = lexer_next();
+  switch (tok.t) {
     case TOK_ADD:
       return BINOP_ADD;
     case TOK_SUB:
@@ -77,7 +78,7 @@ static int parse_binop() {
     case TOK_LEEQ:
       return BINOP_LEEQ;
   }
-  log_internal_err("impossible binary op token");
+  log_internal_err("impossible binary op token %d", tok.t);
   exit(EXIT_FAILURE);
 }
 

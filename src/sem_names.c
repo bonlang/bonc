@@ -13,6 +13,10 @@ static void resolve_expr(AST* ast, Scope* scope, Expr* expr) {
       }
       expr->data.var = entry;
     }
+    case EXPR_INT:
+      break;
+    default:
+      log_internal_err("invalid expr type %d", expr->t);
   }
 }
 
@@ -36,6 +40,11 @@ void resolve_stmt(AST* ast, Stmt* stmt, Scope* scope) {
     case STMT_EXPR:
       resolve_expr(ast, scope, stmt->data.expr);
       break;
+    case STMT_RETURN:
+      resolve_expr(ast, scope, stmt->data.ret);
+      break;
+    default:
+      log_internal_err("invalid stmt type %d", stmt->t);
   }
 }
 void resolve_fn(AST* ast, Function* fn) {

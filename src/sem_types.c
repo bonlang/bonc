@@ -30,7 +30,7 @@ Type* coerce_type(int op, Type** _left, Type** _right, MemPool* pool) {
       }
       return &bool_const;
     default:
-      log_internal_err("invalid binary op");
+      log_internal_err("invalid binary op %d", op);
       return NULL;
   }
 }
@@ -57,6 +57,9 @@ static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
       if (expr->type == NULL) {
         log_source_err("cannot coerce types", ast->src_base, expr->pos);
       }
+      break;
+    default:
+      log_internal_err("invalid expr type %d", expr->t);
   }
 }
 
@@ -84,6 +87,11 @@ void resolve_types(AST* ast) {
       case STMT_EXPR:
         resolve_expr(temp_stmt->data.expr, ast, &ast->pool);
         break;
+      case STMT_RETURN:
+        resolve_expr(temp_stmt->data.ret, ast, &ast->pool);
+        break;
+      default:
+        log_internal_err("invalid stmt type %d", temp_stmt->t);
     }
   }
 }

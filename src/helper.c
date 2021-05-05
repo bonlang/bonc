@@ -49,10 +49,11 @@ void log_err_final(const char* fmt, ...) {
   exit(EXIT_FAILURE);
 }
 
-void log_internal_err(const char* fmt, ...) {
+void actual_log_internal_err(const char* fmt, const char* file, size_t line,
+                             ...) {
   va_list args;
-  va_start(args, fmt);
-  fprintf(stderr, BLUE "internal error" RESET ": ");
+  va_start(args, line);
+  fprintf(stderr, BLUE "internal error: " RESET "%s:%zd: ", file, line);
   vfprintf(stderr, fmt, args);
   fprintf(stderr, "\n");
   exit(EXIT_FAILURE);
@@ -83,10 +84,10 @@ void mempool_init(MemPool* pool) {
   pool->base =
       mmap(NULL, POOL_MAX_SZ, PROT_NONE, MAP_PRIVATE | MAP_ANONYMOUS, -1, 0);
   if (pool->base == MAP_FAILED) {
-    log_internal_err("unable to open mmap pool");
+    log_internal_err("unable to open mmap pool", NULL);
   }
   if (mprotect(pool->base, POOL_CHUNK_SZ, PROT_READ | PROT_WRITE) == -1) {
-    log_internal_err("unable to block out memory in pool");
+    log_internal_err("unable to block out memory in pool", NULL);
   }
   pool->size = 0;
   pool->alloc = POOL_CHUNK_SZ;
@@ -94,7 +95,7 @@ void mempool_init(MemPool* pool) {
 
 void mempool_deinit(MemPool* pool) {
   if (munmap(pool->base, POOL_MAX_SZ) == -1) {
-    log_internal_err("unable to close memory pool");
+    log_internal_err("unable to close memory pool", NULL);
   }
   pool->base = NULL;
 }

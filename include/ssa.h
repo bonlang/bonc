@@ -27,9 +27,11 @@ enum {
   INST_IDIV,
   INST_UDIV,
   INST_COPY,
+  INST_RET,
 };
 
 enum {
+  SZ_NONE,
   SZ_BYTE,
   SZ_HWORD,
   SZ_WORD,
@@ -46,6 +48,7 @@ typedef struct {
       SSA_Obj op2;
     } binop;
     SSA_Obj copy;
+    SSA_Obj ret;
   } data;
 } SSA_Inst;
 

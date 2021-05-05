@@ -13,6 +13,8 @@ static int check_fn(AST* ast, Function* fn) {
         }
         return coerce_type(BINOP_ASSIGN, &fn->ret_type, &stmt->data.ret->type,
                            &ast->pool) != NULL;
+      default:
+        log_internal_err("invalid stmt type %d", stmt->t);
     }
   }
   return fn->ret_type->t == TYPE_VOID;

@@ -2,6 +2,8 @@
 
 #include <stdlib.h>
 
+static const SSA_Obj obj_none_const = {.t = OBJ_NONE};
+
 static int type_sz(int ast_type) {
   switch (ast_type) {
     case TYPE_I8:
@@ -74,7 +76,7 @@ static SSA_Obj translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
       return inst->result;
     }
     default:
-      log_internal_err("cannot translate expression into SSA form ");
+      log_internal_err("invalid expression type %d", expr->t);
       exit(EXIT_FAILURE);
   }
 }
@@ -93,8 +95,22 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
         inst->result.data.reg = get_sym_table_reg(stmt->data.let.var);
       }
       break;
+    case STMT_RETURN: {
+      SSA_Obj op = obj_none_const;
+      if (stmt->data.ret != NULL) {
+        op = translate_expr(stmt->data.ret, scope, block, pool);
+      }
+      SSA_Inst* inst = bblock_append(block, pool);
+      inst->sz = stmt->data.let.value == NULL
+                     ? SZ_NONE
+                     : type_sz(stmt->data.ret->type->t);
+      inst->t = INST_RET;
+      inst->data.ret = op;
+      inst->result = obj_none_const;
+      break;
+    }
     default:
-      log_internal_err("cannot translate statement into SSA form ");
+      log_internal_err("invalid statement type %d", stmt->t);
   }
 }
 

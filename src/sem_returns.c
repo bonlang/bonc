@@ -11,7 +11,7 @@ static int check_fn(AST* ast, Function* fn) {
         if (fn->ret_type->t == TYPE_VOID && stmt->data.ret == NULL) {
           return 1;
         }
-        return coerce_type(BINOP_ASSIGN, fn->ret_type, stmt->data.ret->type,
+        return coerce_type(BINOP_ASSIGN, &fn->ret_type, &stmt->data.ret->type,
                            &ast->pool) != NULL;
     }
   }

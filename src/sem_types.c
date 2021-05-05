@@ -6,7 +6,9 @@ static inline int is_integer_type(int t) {
          t == TYPE_INT;
 }
 
-Type* coerce_type(int op, Type* left, Type* right, MemPool* pool) {
+Type* coerce_type(int op, Type** _left, Type** _right, MemPool* pool) {
+  Type* left = *_left;
+  Type* right = *_right;
   (void)pool;
   switch (op) {
     case BINOP_ADD:
@@ -15,9 +17,11 @@ Type* coerce_type(int op, Type* left, Type* right, MemPool* pool) {
     case BINOP_DIV:
     case BINOP_ASSIGN:
       if (left->t == TYPE_INT && is_integer_type(right->t)) {
+        *_left = right;
         return right;
       }
       if (right->t == TYPE_INT && is_integer_type(left->t)) {
+        *_right = left;
         return left;
       }
       if (left->t != right->t) {
@@ -31,9 +35,11 @@ Type* coerce_type(int op, Type* left, Type* right, MemPool* pool) {
     case BINOP_LE:
     case BINOP_LEEQ:
       if (left->t == TYPE_INT && is_integer_type(right->t)) {
+        *_left = right;
         return &bool_const;
       }
       if (right->t == TYPE_INT && is_integer_type(left->t)) {
+        *_right = left;
         return &bool_const;
       }
       if (left->t != right->t) {
@@ -59,8 +65,9 @@ static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
     case EXPR_BINOP:
       resolve_expr(expr->data.binop.left, ast, pool);
       resolve_expr(expr->data.binop.right, ast, pool);
-      expr->type = coerce_type(expr->data.binop.op, expr->data.binop.left->type,
-                               expr->data.binop.right->type, pool);
+      expr->type =
+          coerce_type(expr->data.binop.op, &expr->data.binop.left->type,
+                      &expr->data.binop.right->type, pool);
       if (expr->type == NULL) {
         log_source_err("cannot coerce types", ast->src_base, expr->pos);
       }
@@ -83,7 +90,8 @@ void resolve_types(AST* ast) {
             if (temp_stmt->data.let.type->t == TYPE_INT) {
               log_err_final("cannot infer type from integer literals");
             }
-          } else if (coerce_type(BINOP_ASSIGN, type, temp_stmt->data.let.type,
+          } else if (coerce_type(BINOP_ASSIGN, &temp_stmt->data.let.value->type,
+                                 &temp_stmt->data.let.type,
                                  &ast->pool) == NULL) {
             log_source_err("cannot coerce assignment", ast->src_base,
                            temp_stmt->pos);

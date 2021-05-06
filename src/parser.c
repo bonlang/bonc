@@ -240,6 +240,7 @@ void parse_fn(AST* ast, Function* function) {
   expect(TOK_FN, "expected 'fn'");
 
   Token name_tok = expect(TOK_SYM, "expected function name");
+  function->name = name_tok.pos;
   function->pos = name_tok.pos;
 
   expect(TOK_LPAREN, "expected '('");

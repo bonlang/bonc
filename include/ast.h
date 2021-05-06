@@ -87,6 +87,7 @@ typedef struct {
 
 typedef struct {
   SourcePosition pos;
+  SourcePosition name;
   Block body;
   Vector params; /* Param */
   Type* ret_type;

@@ -73,7 +73,11 @@ void bblock_dump(FILE* file, SSA_BBlock* block) {
   }
 }
 
-void function_dump(FILE* file, SSA_Fn* fn) { bblock_dump(file, fn->entry); }
+void function_dump(FILE* file, SSA_Fn* fn) {
+  fprintf(file, "fn %.*s\n", (int)fn->name.sz, (char*)fn->name.start);
+  bblock_dump(file, fn->entry);
+  fprintf(file, "\n");
+}
 
 void ssa_prog_dump(FILE* file, SSA_Prog* prog) {
   for (size_t i = 0; i < prog->fns.items; i++) {

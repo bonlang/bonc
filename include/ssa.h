@@ -61,6 +61,7 @@ typedef struct BBlock {
 
 typedef struct {
   struct BBlock* entry;
+  SourcePosition name;
 } SSA_Fn;
 
 typedef struct {

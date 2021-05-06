@@ -138,6 +138,7 @@ void translate_function(Function* fn, SSA_Fn* sem_fn, MemPool* pool) {
   for (size_t i = 0; i < fn->body.stmts.items; i++) {
     translate_stmt(vector_idx(&fn->body.stmts, i), fn->scope, block, pool);
   }
+  sem_fn->name = fn->name;
   sem_fn->entry = block;
 }
 

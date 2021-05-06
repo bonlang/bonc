@@ -72,3 +72,11 @@ void bblock_dump(FILE* file, SSA_BBlock* block) {
     inst_dump(file, inst);
   }
 }
+
+void function_dump(FILE* file, SSA_Fn* fn) { bblock_dump(file, fn->entry); }
+
+void ssa_prog_dump(FILE* file, SSA_Prog* prog) {
+  for (size_t i = 0; i < prog->fns.items; i++) {
+    function_dump(file, vector_idx(&prog->fns, i));
+  }
+}

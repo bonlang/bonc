@@ -75,10 +75,11 @@ int main(int argc, char* argv[]) {
   ast_dump(stdout, &ast);
   printf("\n");
 
-  SSA_BBlock* block = translate_function(&ast.fn, &ast.pool);
+  SSA_Prog ssa_prog;
+  translate_ast(&ast, &ssa_prog, &ast.pool);
 
   printf("IR_DUMP:\n");
-  bblock_dump(stdout, block);
+  ssa_prog_dump(stdout, &ssa_prog);
 
   ast_deinit(&ast);
 

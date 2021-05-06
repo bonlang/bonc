@@ -59,8 +59,17 @@ typedef struct BBlock {
   struct BBlock* next;
 } SSA_BBlock;
 
+typedef struct {
+  struct BBlock* entry;
+} SSA_Fn;
+
+typedef struct {
+  Vector fns; /* SSA_Function */
+} SSA_Prog;
+
 SSA_BBlock* bblock_init(MemPool* pool);
 SSA_Inst* bblock_append(SSA_BBlock* block, MemPool* pool);
 void bblock_finish(SSA_BBlock* block, SSA_BBlock* next);
-void bblock_dump(FILE* file, SSA_BBlock* block);
+void ssa_prog_dump(FILE* file, SSA_Prog* prog);
+
 #endif

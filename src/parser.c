@@ -227,6 +227,7 @@ void parse_block(Block* block, AST* ast) {
         break;
       /* TODO: Replace this with '}' for proper blocks */
       case TOK_RCURLY:
+        lexer_next();
         return;
       default:
         parse_expr_stmt(ast, vector_alloc(&block->stmts, &ast->pool));
@@ -269,7 +270,12 @@ AST parse_ast(const uint8_t* src) {
   AST ret;
 
   ast_init(&ret, src);
+  ast_init(&ret, src);
+
+  while (lexer_peek().t != TOK_EOF) {
+    parse_fn(&ret, vector_alloc(&ret.fns, &ret.pool));
+  }
+
   src_base = src;
-  parse_fn(&ret, &ret.fn);
   return ret;
 }

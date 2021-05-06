@@ -58,7 +58,10 @@ void resolve_fn(AST* ast, Function* fn) {
     resolve_stmt(ast, vector_idx(&fn->body.stmts, i), fn->scope);
   }
 }
+
 void resolve_names(AST* ast) {
   ast->global = scope_init(&ast->pool, NULL);
-  resolve_fn(ast, &ast->fn);
+  for (size_t i = 0; i < ast->fns.items; i++) {
+    resolve_fn(ast, vector_idx(&ast->fns, i));
+  }
 }

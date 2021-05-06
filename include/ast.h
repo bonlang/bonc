@@ -96,7 +96,7 @@ typedef struct {
 typedef struct {
   const uint8_t* src_base;
   MemPool pool; /* used to allocate structures that belong to this AST */
-  Function fn;
+  Vector fns;   /* Function */
   Scope* global;
 } AST;
 

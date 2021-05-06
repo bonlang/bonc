@@ -1,10 +1,5 @@
 #include "semantics.h"
 
-static inline int is_integer_type(int t) {
-  return t == TYPE_U8 || t == TYPE_U16 || t == TYPE_U32 || t == TYPE_U64 ||
-         t == TYPE_I8 || t == TYPE_I16 || t == TYPE_I32 || t == TYPE_I64;
-}
-
 Type* coerce_type(int op, Type** _left, Type** _right, MemPool* pool) {
   Type* left = *_left;
   Type* right = *_right;
@@ -63,9 +58,9 @@ static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
   }
 }
 
-void resolve_types(AST* ast) {
-  for (size_t i = 0; i < ast->fn.body.stmts.items; i++) {
-    Stmt* temp_stmt = vector_idx(&ast->fn.body.stmts, i);
+static void resolve_fn(AST* ast, Function* fn) {
+  for (size_t i = 0; i < fn->body.stmts.items; i++) {
+    Stmt* temp_stmt = vector_idx(&fn->body.stmts, i);
     switch (temp_stmt->t) {
       case STMT_LET:
         /* is this a composite assignment? */
@@ -93,5 +88,11 @@ void resolve_types(AST* ast) {
       default:
         log_internal_err("invalid stmt type %d", temp_stmt->t);
     }
+  }
+}
+
+void resolve_types(AST* ast) {
+  for (size_t i = 0; i < ast->fns.items; i++) {
+    resolve_fn(ast, vector_idx(&ast->fns, i));
   }
 }

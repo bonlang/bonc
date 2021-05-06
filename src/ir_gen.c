@@ -133,10 +133,19 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
   }
 }
 
-SSA_BBlock* translate_function(Function* fn, MemPool* pool) {
+void translate_function(Function* fn, SSA_Fn* sem_fn, MemPool* pool) {
   SSA_BBlock* block = bblock_init(pool);
   for (size_t i = 0; i < fn->body.stmts.items; i++) {
     translate_stmt(vector_idx(&fn->body.stmts, i), fn->scope, block, pool);
   }
-  return block;
+  sem_fn->entry = block;
+}
+
+void translate_ast(AST* ast, SSA_Prog* prog, MemPool* pool) {
+  vector_init(&prog->fns, sizeof(SSA_Fn), pool);
+
+  for (size_t i = 0; i < ast->fns.items; i++) {
+    translate_function(vector_idx(&ast->fns, i), vector_alloc(&prog->fns, pool),
+                       pool);
+  }
 }

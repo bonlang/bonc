@@ -20,6 +20,7 @@ void ast_init(AST* ast, const uint8_t* src) {
   ast->src_base = src;
   mempool_init(&ast->pool);
   ast->global = scope_init(&ast->pool, NULL);
+  vector_init(&ast->fns, sizeof(Function), &ast->pool);
 }
 
 static void print_indent(FILE* file, int indent) {
@@ -56,7 +57,7 @@ static const char* str_of_binop(int op) {
 }
 
 static const char* type_to_str[] = {
-    "Type_Int", "Type_U8",  "Type_U16", "Type_U32",  "Type_U64", "Type_I8",
+    "Type_U8",  "Type_U16", "Type_U32", "Type_U64",  "Type_I8",
     "Type_I16", "Type_I32", "Type_I64", "Type_Bool", "Type_Void"};
 
 static void type_dump(FILE* file, Type* type, int indent) {
@@ -115,7 +116,11 @@ static void fn_dump(FILE* file, Function* fn) {
   }
 }
 
-void ast_dump(FILE* file, AST* ast) { fn_dump(file, &ast->fn); }
+void ast_dump(FILE* file, AST* ast) {
+  for (size_t i = 0; i < ast->fns.items; i++) {
+    fn_dump(file, vector_idx(&ast->fns, i));
+  }
+}
 
 int is_unsigned(int t) {
   return t == TYPE_U8 || t == TYPE_U16 || t == TYPE_U32 || t == TYPE_U64;

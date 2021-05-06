@@ -21,8 +21,10 @@ static int check_fn(AST* ast, Function* fn) {
 }
 
 void check_returns(AST* ast) {
-  if (check_fn(ast, &ast->fn) == 0) {
-    log_source_err("non-void function never returns", ast->src_base,
-                   ast->fn.pos);
+  for (size_t i = 0; i < ast->fns.items; i++) {
+    Function* fn = vector_idx(&ast->fns, i);
+    if (!check_fn(ast, fn)) {
+      log_source_err("non-void function never returns", ast->src_base, fn->pos);
+    }
   }
 }

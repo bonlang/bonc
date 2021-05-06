@@ -5,20 +5,7 @@
 #include <stdio.h>
 
 #include "helper.h"
-
-enum {
-  OBJ_NONE,
-  OBJ_INT,
-  OBJ_REG,
-};
-
-typedef struct {
-  int t;
-  union {
-    int64_t reg;
-    SourcePosition intnum;
-  } data;
-} SSA_Obj;
+#include "sym_reg.h"
 
 enum {
   INST_ADD,
@@ -28,27 +15,22 @@ enum {
   INST_UDIV,
   INST_COPY,
   INST_RET,
-};
-
-enum {
-  SZ_NONE,
-  SZ_BYTE,
-  SZ_HWORD,
-  SZ_WORD,
-  SZ_QWORD,
+  INST_IMM,
 };
 
 typedef struct {
   int t;
   int sz;
-  SSA_Obj result;
+  SymReg* result;
+
   union {
     struct {
-      SSA_Obj op1;
-      SSA_Obj op2;
+      SymReg* op1;
+      SymReg* op2;
     } binop;
-    SSA_Obj copy;
-    SSA_Obj ret;
+    SymReg* copy;
+    SymReg* ret;
+    SourcePosition imm;
   } data;
 } SSA_Inst;
 
@@ -61,6 +43,7 @@ typedef struct BBlock {
 
 typedef struct {
   struct BBlock* entry;
+  Vector params; /* SymReg**/
   SourcePosition name;
 } SSA_Fn;
 

@@ -2,7 +2,7 @@
 
 #include <stdlib.h>
 
-static const SSA_Obj obj_none_const = {.t = OBJ_NONE};
+#define NEXT_REG(fn) (fn->cur_id++)
 
 static int type_sz(int ast_type) {
   switch (ast_type) {
@@ -23,11 +23,19 @@ static int type_sz(int ast_type) {
   return 0;
 }
 
-static int get_sym_table_reg(ScopeEntry* entry) {
-  if (entry->inf.id == 0) {
-    return entry->inf.id = next_reg();
+static SymReg* new_reg(int sz, MemPool* pool) {
+  SymReg* ret = mempool_alloc(pool, sizeof(SymReg));
+  ret->sz = sz;
+  ret->vn = next_vn();
+  return ret;
+}
+
+static SymReg* get_sym_table_reg(ScopeEntry* entry, MemPool* pool) {
+  if (entry->reg == NULL) {
+    return entry->reg = new_reg(type_sz(entry->inf.type->t), pool);
+  } else {
+    return entry->reg;
   }
-  return entry->inf.id;
 }
 
 static int translate_binop(int typ, int binop) {
@@ -48,31 +56,31 @@ static int translate_binop(int typ, int binop) {
       return 0;
   }
 }
-static SSA_Obj translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
+
+static SymReg* translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
                               MemPool* pool) {
   (void)scope;
   (void)block;
   (void)pool;
-  SSA_Obj ret;
   switch (expr->t) {
-    case EXPR_INT:
-      ret.t = OBJ_INT;
-      ret.data.intnum = expr->data.intlit.literal;
-      return ret;
-    case EXPR_VAR:
-      ret.t = OBJ_REG;
-      ret.data.reg = get_sym_table_reg(expr->data.var);
-      return ret;
+    case EXPR_INT: {
+      SSA_Inst* inst = bblock_append(block, pool);
+      inst->t = INST_IMM;
+      inst->data.imm = expr->data.intlit.literal;
+      return inst->result = new_reg(expr->type->t, pool);
+    }
+    case EXPR_VAR: {
+      return get_sym_table_reg(expr->data.var, pool);
+    }
     case EXPR_BINOP: {
-      SSA_Obj obj1 = translate_expr(expr->data.binop.left, scope, block, pool);
-      SSA_Obj obj2 = translate_expr(expr->data.binop.right, scope, block, pool);
+      SymReg* obj1 = translate_expr(expr->data.binop.left, scope, block, pool);
+      SymReg* obj2 = translate_expr(expr->data.binop.right, scope, block, pool);
       SSA_Inst* inst = bblock_append(block, pool);
       inst->sz = type_sz(expr->type->t);
       inst->t = translate_binop(expr->type->t, expr->data.binop.op);
       inst->data.binop.op1 = obj1;
       inst->data.binop.op2 = obj2;
-      inst->result.t = OBJ_REG;
-      inst->result.data.reg = next_reg();
+      inst->result = new_reg(type_sz(expr->type->t), pool);
       return inst->result;
     }
     default:
@@ -81,16 +89,10 @@ static SSA_Obj translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
   }
 }
 
-static void inst_init(SSA_Inst* inst, int t, int sz, SSA_Obj result) {
+static void inst_init(SSA_Inst* inst, int t, int sz, SymReg* result) {
   inst->sz = sz;
   inst->t = t;
   inst->result = result;
-}
-
-static SSA_Obj make_reg_obj(int reg) {
-  SSA_Obj ret = {.t = OBJ_REG};
-  ret.data.reg = reg;
-  return ret;
 }
 
 static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
@@ -98,24 +100,23 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
   switch (stmt->t) {
     case STMT_LET:
       if (stmt->data.let.value != NULL) {
-        SSA_Obj obj = translate_expr(stmt->data.let.value, scope, block, pool);
+        SymReg* obj = translate_expr(stmt->data.let.value, scope, block, pool);
         SSA_Inst* inst = bblock_append(block, pool);
 
         inst_init(inst, INST_COPY, type_sz(stmt->data.let.value->type->t),
-                  make_reg_obj(get_sym_table_reg(stmt->data.let.var)));
+                  get_sym_table_reg(stmt->data.let.var, pool));
         inst->data.copy = obj;
       }
       break;
     case STMT_EXPR: {
-      SSA_Obj op = translate_expr(stmt->data.expr, scope, block, pool);
+      SymReg* op = translate_expr(stmt->data.expr, scope, block, pool);
       SSA_Inst* inst = bblock_append(block, pool);
-      inst_init(inst, INST_COPY, type_sz(stmt->data.expr->type->t),
-                obj_none_const);
+      inst_init(inst, INST_COPY, type_sz(stmt->data.expr->type->t), NULL);
       inst->data.copy = op;
       break;
     }
     case STMT_RETURN: {
-      SSA_Obj op = obj_none_const;
+      SymReg* op = NULL;
       if (stmt->data.ret != NULL) {
         op = translate_expr(stmt->data.ret, scope, block, pool);
       }
@@ -125,7 +126,7 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
                      : type_sz(stmt->data.ret->type->t);
       inst->t = INST_RET;
       inst->data.ret = op;
-      inst->result = obj_none_const;
+      inst->result = NULL;
       break;
     }
     default:
@@ -135,6 +136,13 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
 
 void translate_function(Function* fn, SSA_Fn* sem_fn, MemPool* pool) {
   SSA_BBlock* block = bblock_init(pool);
+  vector_init(&sem_fn->params, sizeof(SymReg*), pool);
+  for (size_t i = 0; i < fn->params.items; i++) {
+    Param* param = vector_idx(&fn->params, i);
+    SymReg* temp = get_sym_table_reg(param->entry, pool);
+    vector_push(&sem_fn->params, &temp, pool);
+  }
+
   for (size_t i = 0; i < fn->body.stmts.items; i++) {
     translate_stmt(vector_idx(&fn->body.stmts, i), fn->scope, block, pool);
   }

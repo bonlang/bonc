@@ -19,18 +19,11 @@ void bblock_finalize(SSA_BBlock* block, SSA_BBlock* next) {
   block->next = next;
 }
 
-static void obj_dump(FILE* file, SSA_Obj* obj) {
-  switch (obj->t) {
-    case OBJ_NONE:
-      fprintf(file, "_");
-      break;
-    case OBJ_INT:
-      fprintf(file, "$%.*s", (int)obj->data.intnum.sz,
-              (char*)obj->data.intnum.start);
-      break;
-    case OBJ_REG:
-      fprintf(file, "%%%" PRId64, obj->data.reg);
-      break;
+static void reg_dump(FILE* file, SymReg* reg) {
+  if (reg == NULL) {
+    fprintf(file, "_");
+  } else {
+    fprintf(file, "%%%" PRId64, reg->vn);
   }
 }
 
@@ -40,25 +33,30 @@ const char sz_name_tbl[] = {' ', 'b', 'h', 'w', 'q'};
 static void inst_dump(FILE* file, SSA_Inst* inst) {
   switch (inst->t) {
     case INST_COPY:
-      obj_dump(file, &inst->result);
+      reg_dump(file, inst->result);
       fprintf(file, " =%c copy ", sz_name_tbl[inst->sz]);
-      obj_dump(file, &inst->data.copy);
+      reg_dump(file, inst->data.copy);
+      break;
+    case INST_IMM:
+      reg_dump(file, inst->result);
+      fprintf(file, " =%c $%.*s", sz_name_tbl[inst->result->sz],
+              (int)inst->data.imm.sz, (char*)inst->data.imm.start);
       break;
     case INST_ADD:
     case INST_SUB:
     case INST_MUL:
     case INST_IDIV:
     case INST_UDIV:
-      obj_dump(file, &inst->result);
+      reg_dump(file, inst->result);
       fprintf(file, " =%c %s ", sz_name_tbl[inst->sz],
               binop_name_tbl[inst->t - INST_ADD]);
-      obj_dump(file, &inst->data.binop.op1);
+      reg_dump(file, inst->data.binop.op1);
       fprintf(file, " ");
-      obj_dump(file, &inst->data.binop.op2);
+      reg_dump(file, inst->data.binop.op2);
       break;
     case INST_RET:
       fprintf(file, "ret ");
-      obj_dump(file, &inst->data.ret);
+      reg_dump(file, inst->data.ret);
       break;
     default:
       log_internal_err("cannot print instruction: %d", inst->t);

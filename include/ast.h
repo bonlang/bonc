@@ -83,6 +83,7 @@ typedef struct {
 typedef struct {
   Type* type;
   SourcePosition name;
+  ScopeEntry* entry;
 } Param;
 
 typedef struct {

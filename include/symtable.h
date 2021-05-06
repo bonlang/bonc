@@ -5,6 +5,7 @@
 #include <stdint.h>
 
 #include "helper.h"
+#include "sym_reg.h"
 #include "type.h"
 
 typedef struct {
@@ -19,6 +20,7 @@ typedef struct ScopeEntry {
   SourcePosition pos;
   struct ScopeEntry* next;
   VarInfo inf;
+  SymReg* reg;
 } ScopeEntry;
 
 typedef struct Scope {

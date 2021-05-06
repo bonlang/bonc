@@ -12,7 +12,7 @@ typedef struct {
 SourcePosition combine_pos(SourcePosition pos1, SourcePosition pos2);
 SourcePosition make_pos(const uint8_t* buf, size_t sz);
 
-int64_t next_reg();
+int64_t next_vn();
 
 void log_err(const char* fmt, ...);
 

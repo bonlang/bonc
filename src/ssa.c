@@ -3,9 +3,7 @@
 #include <inttypes.h>
 
 SSA_BBlock* bblock_init(MemPool* pool) {
-  static int64_t id_cnt = 0;
   SSA_BBlock* block = mempool_alloc(pool, sizeof(SSA_BBlock));
-  block->id = id_cnt++;
   vector_init(&block->insts, sizeof(SSA_Inst), pool);
   block->next = NULL;
   return block;
@@ -19,27 +17,25 @@ void bblock_finalize(SSA_BBlock* block, SSA_BBlock* next) {
   block->next = next;
 }
 
-static void reg_dump(FILE* file, SymReg* reg) {
-  if (reg == NULL) {
-    fprintf(file, "_");
-  } else {
-    fprintf(file, "%%%" PRId64, reg->vn);
-  }
-}
-
 const char* binop_name_tbl[] = {"add", "sub", "mul", "idiv", "udiv"};
 const char* sz_name_tbl[] = {"", "8", "16", "32", "64"};
+
+static void dump_nullable_reg(FILE* file, uint64_t reg) {
+  if (reg == 0) {
+    fprintf(file, "_");
+  } else {
+    fprintf(file, "%%%ld", reg);
+  }
+}
 
 static void inst_dump(FILE* file, SSA_Inst* inst) {
   switch (inst->t) {
     case INST_COPY:
-      reg_dump(file, inst->result);
-      fprintf(file, " =%s copy ", sz_name_tbl[inst->sz]);
-      reg_dump(file, inst->data.copy);
+      fprintf(file, "%%%ld =%s copy %ld", inst->result, sz_name_tbl[inst->sz],
+              inst->result);
       break;
     case INST_IMM:
-      reg_dump(file, inst->result);
-      fprintf(file, " =%s $%.*s", sz_name_tbl[inst->result->sz],
+      fprintf(file, "%%%ld =%s $%.*s", inst->result, sz_name_tbl[inst->sz],
               (int)inst->data.imm.sz, (char*)inst->data.imm.start);
       break;
     case INST_ADD:
@@ -47,16 +43,13 @@ static void inst_dump(FILE* file, SSA_Inst* inst) {
     case INST_MUL:
     case INST_IDIV:
     case INST_UDIV:
-      reg_dump(file, inst->result);
-      fprintf(file, " =%s %s ", sz_name_tbl[inst->sz],
-              binop_name_tbl[inst->t - INST_ADD]);
-      reg_dump(file, inst->data.binop.op1);
-      fprintf(file, " ");
-      reg_dump(file, inst->data.binop.op2);
+      fprintf(file, "%%%ld =%s %s %%%ld %%%ld", inst->result,
+              sz_name_tbl[inst->sz], binop_name_tbl[inst->t - INST_ADD],
+              inst->data.binop.op1, inst->data.binop.op2);
       break;
     case INST_RET:
       fprintf(file, "ret ");
-      reg_dump(file, inst->data.ret);
+      dump_nullable_reg(file, inst->data.ret);
       break;
     default:
       log_internal_err("cannot print instruction: %d", inst->t);
@@ -76,13 +69,14 @@ void function_dump(FILE* file, SSA_Fn* fn) {
 
   if (fn->params.items > 0) {
     for (size_t i = 0; i < fn->params.items - 1; i++) {
-      SymReg** param = vector_idx(&fn->params, i);
-      fprintf(file, "%%%" PRId64 ": %s, ", (*param)->vn,
-              sz_name_tbl[(*param)->sz]);
+      uint64_t param = *((uint64_t*)vector_idx(&fn->params, i));
+      SSA_Reg* reg = vector_idx(&fn->regs, param);
+      fprintf(file, "%%%ld: %s, ", param, sz_name_tbl[reg->sz]);
     }
-    SymReg** param = vector_idx(&fn->params, fn->params.items - 1);
-    fprintf(file, "%%%" PRId64 ": %s)\n", (*param)->vn,
-            sz_name_tbl[(*param)->sz]);
+    uint64_t param =
+        *((uint64_t*)vector_idx(&fn->params, fn->params.items - 1));
+    SSA_Reg* reg = vector_idx(&fn->regs, param);
+    fprintf(file, "%%%ld: %s)\n", param, sz_name_tbl[reg->sz]);
   } else {
     fprintf(file, ")\n");
   }

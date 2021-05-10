@@ -8,34 +8,34 @@ static int type_sz(int ast_type) {
   switch (ast_type) {
     case TYPE_I8:
     case TYPE_U8:
-      return SZ_BYTE;
+      return SZ_8;
     case TYPE_I16:
     case TYPE_U16:
       printf("here\n");
-      return SZ_HWORD;
+      return SZ_16;
     case TYPE_I32:
     case TYPE_U32:
-      return SZ_WORD;
+      return SZ_32;
     case TYPE_I64:
     case TYPE_U64:
-      return SZ_QWORD;
+      return SZ_64;
   }
   log_internal_err("invalid type %d", ast_type);
   return 0;
 }
 
-static SymReg* new_reg(int sz, MemPool* pool) {
-  SymReg* ret = mempool_alloc(pool, sizeof(SymReg));
-  ret->sz = sz;
-  ret->vn = next_vn();
+static uint64_t new_reg(SSA_Fn* fn, int sz, MemPool* pool) {
+  SSA_Reg* reg = vector_alloc(&fn->regs, pool);
+  uint64_t ret = (uint64_t)fn->regs.items; /* starts at 1 */
+  reg->sz = sz;
   return ret;
 }
 
-static SymReg* get_sym_table_reg(ScopeEntry* entry, MemPool* pool) {
-  if (entry->reg == NULL) {
-    return entry->reg = new_reg(type_sz(entry->inf.type->t), pool);
+static uint64_t sym_table_reg(SSA_Fn* fn, ScopeEntry* entry, MemPool* pool) {
+  if (entry->inf.id == 0) {
+    return entry->inf.id = new_reg(fn, type_sz(entry->inf.type->t), pool);
   } else {
-    return entry->reg;
+    return entry->inf.id;
   }
 }
 
@@ -58,30 +58,39 @@ static int translate_binop(int typ, int binop) {
   }
 }
 
-static SymReg* translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
-                              MemPool* pool) {
+static void inst_init(SSA_Inst* inst, int t, int sz, uint64_t result) {
+  inst->sz = sz;
+  inst->t = t;
+  inst->result = result;
+}
+
+static uint64_t translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
+                               SSA_Fn* fn, MemPool* pool) {
   (void)scope;
   (void)block;
   (void)pool;
   switch (expr->t) {
     case EXPR_INT: {
       SSA_Inst* inst = bblock_append(block, pool);
-      inst->t = INST_IMM;
+      inst_init(inst, INST_IMM, type_sz(expr->type->t),
+                new_reg(fn, expr->type->t, pool));
       inst->data.imm = expr->data.intlit.literal;
-      return inst->result = new_reg(expr->type->t, pool);
+      return inst->result;
     }
     case EXPR_VAR: {
-      return get_sym_table_reg(expr->data.var, pool);
+      return sym_table_reg(fn, expr->data.var, pool);
     }
     case EXPR_BINOP: {
-      SymReg* obj1 = translate_expr(expr->data.binop.left, scope, block, pool);
-      SymReg* obj2 = translate_expr(expr->data.binop.right, scope, block, pool);
+      uint64_t obj1 =
+          translate_expr(expr->data.binop.left, scope, block, fn, pool);
+      uint64_t obj2 =
+          translate_expr(expr->data.binop.right, scope, block, fn, pool);
       SSA_Inst* inst = bblock_append(block, pool);
       inst->sz = type_sz(expr->type->t);
       inst->t = translate_binop(expr->type->t, expr->data.binop.op);
       inst->data.binop.op1 = obj1;
       inst->data.binop.op2 = obj2;
-      inst->result = new_reg(type_sz(expr->type->t), pool);
+      inst->result = new_reg(fn, type_sz(expr->type->t), pool);
       return inst->result;
     }
     default:
@@ -90,44 +99,38 @@ static SymReg* translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
   }
 }
 
-static void inst_init(SSA_Inst* inst, int t, int sz, SymReg* result) {
-  inst->sz = sz;
-  inst->t = t;
-  inst->result = result;
-}
-
 static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
-                           MemPool* pool) {
+                           SSA_Fn* fn, MemPool* pool) {
   switch (stmt->t) {
     case STMT_LET:
       if (stmt->data.let.value != NULL) {
-        SymReg* obj = translate_expr(stmt->data.let.value, scope, block, pool);
+        uint64_t obj =
+            translate_expr(stmt->data.let.value, scope, block, fn, pool);
         SSA_Inst* inst = bblock_append(block, pool);
 
         inst_init(inst, INST_COPY, type_sz(stmt->data.let.value->type->t),
-                  get_sym_table_reg(stmt->data.let.var, pool));
+                  sym_table_reg(fn, stmt->data.let.var, pool));
         inst->data.copy = obj;
       }
       break;
     case STMT_EXPR: {
-      SymReg* op = translate_expr(stmt->data.expr, scope, block, pool);
+      uint64_t op = translate_expr(stmt->data.expr, scope, block, fn, pool);
       SSA_Inst* inst = bblock_append(block, pool);
-      inst_init(inst, INST_COPY, type_sz(stmt->data.expr->type->t), NULL);
+      inst_init(inst, INST_COPY, type_sz(stmt->data.expr->type->t), 0);
       inst->data.copy = op;
       break;
     }
     case STMT_RETURN: {
-      SymReg* op = NULL;
+      uint64_t op = 0;
       if (stmt->data.ret != NULL) {
-        op = translate_expr(stmt->data.ret, scope, block, pool);
+        op = translate_expr(stmt->data.ret, scope, block, fn, pool);
       }
       SSA_Inst* inst = bblock_append(block, pool);
-      inst->sz = stmt->data.let.value == NULL
-                     ? SZ_NONE
-                     : type_sz(stmt->data.ret->type->t);
-      inst->t = INST_RET;
+      inst_init(inst, INST_RET, 0,
+                stmt->data.let.value == NULL
+                    ? SZ_NONE
+                    : type_sz(stmt->data.ret->type->t));
       inst->data.ret = op;
-      inst->result = NULL;
       break;
     }
     default:
@@ -137,15 +140,17 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
 
 void translate_function(Function* fn, SSA_Fn* sem_fn, MemPool* pool) {
   SSA_BBlock* block = bblock_init(pool);
-  vector_init(&sem_fn->params, sizeof(SymReg*), pool);
+  vector_init(&sem_fn->params, sizeof(uint64_t), pool);
+  vector_init(&sem_fn->regs, sizeof(SSA_Reg), pool);
   for (size_t i = 0; i < fn->params.items; i++) {
     Param* param = vector_idx(&fn->params, i);
-    SymReg* temp = get_sym_table_reg(param->entry, pool);
+    uint64_t temp = sym_table_reg(sem_fn, param->entry, pool);
     vector_push(&sem_fn->params, &temp, pool);
   }
 
   for (size_t i = 0; i < fn->body.stmts.items; i++) {
-    translate_stmt(vector_idx(&fn->body.stmts, i), fn->scope, block, pool);
+    translate_stmt(vector_idx(&fn->body.stmts, i), fn->scope, block, sem_fn,
+                   pool);
   }
   sem_fn->name = fn->name;
   sem_fn->entry = block;

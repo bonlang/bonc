@@ -5,12 +5,11 @@
 #include <stdint.h>
 
 #include "helper.h"
-#include "sym_reg.h"
 #include "type.h"
 
 typedef struct {
   int mut;
-  int64_t id; /* used in IR generation */
+  uint64_t id; /* used in IR generation */
   struct Type* type;
 } VarInfo;
 
@@ -20,7 +19,6 @@ typedef struct ScopeEntry {
   SourcePosition pos;
   struct ScopeEntry* next;
   VarInfo inf;
-  SymReg* reg;
 } ScopeEntry;
 
 typedef struct Scope {

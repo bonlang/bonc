@@ -83,7 +83,9 @@ static void resolve_fn(AST* ast, Function* fn) {
         resolve_expr(temp_stmt->data.expr, ast, &ast->pool);
         break;
       case STMT_RETURN:
-        resolve_expr(temp_stmt->data.ret, ast, &ast->pool);
+        if (temp_stmt->data.ret) {
+          resolve_expr(temp_stmt->data.ret, ast, &ast->pool);
+        }
         break;
       default:
         log_internal_err("invalid stmt type %d", temp_stmt->t);

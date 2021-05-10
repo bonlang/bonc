@@ -41,7 +41,9 @@ void resolve_stmt(AST* ast, Stmt* stmt, Scope* scope) {
       resolve_expr(ast, scope, stmt->data.expr);
       break;
     case STMT_RETURN:
-      resolve_expr(ast, scope, stmt->data.ret);
+      if (stmt->data.ret) {
+        resolve_expr(ast, scope, stmt->data.ret);
+      }
       break;
     default:
       log_internal_err("invalid stmt type %d", stmt->t);

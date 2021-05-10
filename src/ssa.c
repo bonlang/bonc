@@ -28,18 +28,18 @@ static void reg_dump(FILE* file, SymReg* reg) {
 }
 
 const char* binop_name_tbl[] = {"add", "sub", "mul", "idiv", "udiv"};
-const char sz_name_tbl[] = {' ', 'b', 'h', 'w', 'q'};
+const char* sz_name_tbl[] = {"", "8", "16", "32", "64"};
 
 static void inst_dump(FILE* file, SSA_Inst* inst) {
   switch (inst->t) {
     case INST_COPY:
       reg_dump(file, inst->result);
-      fprintf(file, " =%c copy ", sz_name_tbl[inst->sz]);
+      fprintf(file, " =%s copy ", sz_name_tbl[inst->sz]);
       reg_dump(file, inst->data.copy);
       break;
     case INST_IMM:
       reg_dump(file, inst->result);
-      fprintf(file, " =%c $%.*s", sz_name_tbl[inst->result->sz],
+      fprintf(file, " =%s $%.*s", sz_name_tbl[inst->result->sz],
               (int)inst->data.imm.sz, (char*)inst->data.imm.start);
       break;
     case INST_ADD:
@@ -48,7 +48,7 @@ static void inst_dump(FILE* file, SSA_Inst* inst) {
     case INST_IDIV:
     case INST_UDIV:
       reg_dump(file, inst->result);
-      fprintf(file, " =%c %s ", sz_name_tbl[inst->sz],
+      fprintf(file, " =%s %s ", sz_name_tbl[inst->sz],
               binop_name_tbl[inst->t - INST_ADD]);
       reg_dump(file, inst->data.binop.op1);
       fprintf(file, " ");
@@ -72,7 +72,21 @@ void bblock_dump(FILE* file, SSA_BBlock* block) {
 }
 
 void function_dump(FILE* file, SSA_Fn* fn) {
-  fprintf(file, "fn %.*s\n", (int)fn->name.sz, (char*)fn->name.start);
+  fprintf(file, "fn %.*s(", (int)fn->name.sz, (char*)fn->name.start);
+
+  if (fn->params.items > 0) {
+    for (size_t i = 0; i < fn->params.items - 1; i++) {
+      SymReg** param = vector_idx(&fn->params, i);
+      fprintf(file, "%%%" PRId64 ": %s, ", (*param)->vn,
+              sz_name_tbl[(*param)->sz]);
+    }
+    SymReg** param = vector_idx(&fn->params, fn->params.items - 1);
+    fprintf(file, "%%%" PRId64 ": %s)\n", (*param)->vn,
+            sz_name_tbl[(*param)->sz]);
+  } else {
+    fprintf(file, ")\n");
+  }
+
   bblock_dump(file, fn->entry);
   fprintf(file, "\n");
 }

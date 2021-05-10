@@ -43,7 +43,7 @@ typedef struct BBlock {
 
 typedef struct {
   struct BBlock* entry;
-  Vector params; /* SymReg**/
+  Vector params; /* SymReg* */
   SourcePosition name;
 } SSA_Fn;
 

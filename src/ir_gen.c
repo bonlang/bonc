@@ -11,6 +11,7 @@ static int type_sz(int ast_type) {
       return SZ_BYTE;
     case TYPE_I16:
     case TYPE_U16:
+      printf("here\n");
       return SZ_HWORD;
     case TYPE_I32:
     case TYPE_U32:

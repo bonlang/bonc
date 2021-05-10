@@ -51,8 +51,8 @@ void resolve_fn(AST* ast, Function* fn) {
   fn->scope = scope_init(&ast->pool, ast->global);
   for (size_t i = 0; i < fn->params.items; i++) {
     Param* param = vector_idx(&fn->params, i);
-    scope_insert(&ast->pool, fn->scope, param->name,
-                 make_var_info(0, param->type));
+    param->entry = scope_insert(&ast->pool, fn->scope, param->name,
+                                make_var_info(0, param->type));
   }
   for (size_t i = 0; i < fn->body.stmts.items; i++) {
     resolve_stmt(ast, vector_idx(&fn->body.stmts, i), fn->scope);

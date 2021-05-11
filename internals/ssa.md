@@ -6,7 +6,7 @@ The SSA IR is the primary IR used by the compiler for target agnostic optimizati
 
 The SSA is made up of a vector of functions, which are made up of a vector of basic blocks, which are then made up of a vector of operations.
 
-Besides calling functions each operation takes at a max 3 paramters, and returns a value into the first element of the quadruple, which can be a symbolic register or nothing. 
+Besides calling functions each operation takes a set number of variables, and optionally returns a value into the register on the left hand, which can be a symbolic register or nothing. 
 
 ### Datatypes
 
@@ -17,17 +17,21 @@ Besides calling functions each operation takes at a max 3 paramters, and returns
 
 The SSA is very weakly typed with types implemented as functions on bit vectors.
 
-There are 2 data types, long and word. They are both bit vectors with no signedness to them, with long being 64 bits and word being just 32. 
+There are 4 data types all bit vectors, 8, 16, 32, and 64. They are both bit vectors with no signedness to them.
 
 ### Operations
 
 * add - adds two bit vectors of the same size (doesn't care about sign)
 * sub - same as add but subtraction
-* mul - same as add but multiplication
+* imul - same as add but multiplication (acts as if they are signed)
+* umul - same as add but multiplication (acts as if they are unsigned)
 * idiv - divides two bit vectors of the same size (acts as if they are signed)
 * udiv - divides two bit vectors of the same size (acts as if they are unsigned)
+* ret  - returns from the current function
 
 ### Examples
 
-%1 =w add $10 $15
-%2 =w add %1 $21
+%1 =32 $48
+%2 =32 $52
+%3 =32 add %1 %2
+ret %3

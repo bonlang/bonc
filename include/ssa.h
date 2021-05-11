@@ -6,6 +6,8 @@
 
 #include "helper.h"
 
+typedef uint64_t RegId;
+
 enum {
   SZ_NONE,
   SZ_8,
@@ -28,15 +30,15 @@ enum {
 typedef struct {
   int t;
   int sz;
-  uint64_t result;
+  RegId result;
 
   union {
     struct {
-      uint64_t op1;
-      uint64_t op2;
+      RegId op1;
+      RegId op2;
     } binop;
-    uint64_t copy;
-    uint64_t ret;
+    RegId copy;
+    RegId ret;
     SourcePosition imm;
   } data;
 } SSA_Inst;
@@ -54,13 +56,13 @@ typedef struct {
 
 typedef struct {
   SSA_BBlock* entry;
-  Vector params; /* uint64_t */
+  Vector params; /* RegId */
   Vector regs;   /* SSA_Reg */
   SourcePosition name;
 } SSA_Fn;
 
 typedef struct {
-  uint64_t next_id;
+  RegId next_id;
   Vector fns; /* SSA_Function */
 } SSA_Prog;
 

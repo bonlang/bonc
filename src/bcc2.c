@@ -21,10 +21,11 @@ struct {
   int reg_dump : 1;
   int help : 1;
   int version : 1;
-  const char* in_file;
+  const char *in_file;
 } flags;
 
-void parse_args(int argc, char* argv[]) {
+void
+parse_args(int argc, char *argv[]) {
   memset(&flags, 0, sizeof(flags));
   for (int i = 1; i < argc; i++) {
     if (argv[i][0] != '-') {
@@ -42,7 +43,8 @@ void parse_args(int argc, char* argv[]) {
   }
 }
 
-int main(int argc, char* argv[]) {
+int
+main(int argc, char *argv[]) {
   parse_args(argc, argv);
 
   if (!flags.in_file) {
@@ -50,10 +52,9 @@ int main(int argc, char* argv[]) {
   }
 
   if (flags.help) {
-    printf(
-        "-h : prints help\n-v : prints version\n-ast : dumps ast to "
-        "stdout\n-ir : dumps ir to stdout\n-regs : dumps registers to "
-        "stdout\n");
+    printf("-h : prints help\n-v : prints version\n-ast : dumps ast to "
+           "stdout\n-ir : dumps ir to stdout\n-regs : dumps registers to "
+           "stdout\n");
     exit(EXIT_SUCCESS);
   }
   if (flags.version) {
@@ -72,7 +73,7 @@ int main(int argc, char* argv[]) {
   }
   size_t in_size = _in_stat.st_size;
 
-  const uint8_t* in_file =
+  const uint8_t *in_file =
       mmap(NULL, in_size, PROT_READ, MAP_PRIVATE, in_fd, 0);
   if (in_file == MAP_FAILED) {
     log_err_final("unable to get contents of '%s'", flags.in_file);
@@ -101,6 +102,6 @@ int main(int argc, char* argv[]) {
 
   ast_deinit(&ast);
 
-  munmap((uint8_t*)in_file, in_size);
+  munmap((uint8_t *)in_file, in_size);
   return EXIT_SUCCESS;
 }

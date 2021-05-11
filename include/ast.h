@@ -36,21 +36,21 @@ typedef struct Expr {
   int t;
   SourcePosition pos;
 
-  Type* type;
+  Type *type;
   union {
     struct {
-      struct Expr* left;
-      struct Expr* right;
+      struct Expr *left;
+      struct Expr *right;
       int op;
     } binop;
-    ScopeEntry* var;
+    ScopeEntry *var;
     struct {
       SourcePosition literal;
       int type;
     } intlit;
     struct {
       SourcePosition name;
-      ScopeEntry* fun;
+      ScopeEntry *fun;
       Vector args; /* Expr* */
     } funcall;
   } data;
@@ -71,13 +71,13 @@ typedef struct {
     struct {
       SourcePosition name;
       int mut;
-      ScopeEntry* var;
-      Type* type;
-      Expr* value; /* null if variable is not initialized on declaration */
+      ScopeEntry *var;
+      Type *type;
+      Expr *value; /* null if variable is not initialized on declaration */
     } let;
 
-    Expr* expr;
-    Expr* ret;
+    Expr *expr;
+    Expr *ret;
   } data;
 } Stmt;
 
@@ -87,29 +87,29 @@ typedef struct {
 } Block;
 
 typedef struct {
-  Type* type;
+  Type *type;
   SourcePosition name;
-  ScopeEntry* entry;
+  ScopeEntry *entry;
 } Param;
 
 typedef struct {
   SourcePosition pos;
   SourcePosition name;
   Block body;
-  ScopeEntry* entry;
+  ScopeEntry *entry;
   Vector params; /* Param */
-  Type* ret_type;
-  Scope* scope;
+  Type *ret_type;
+  Scope *scope;
 } Function;
 
 typedef struct {
-  const uint8_t* src_base;
+  const uint8_t *src_base;
   MemPool pool; /* used to allocate structures that belong to this AST */
   Vector fns;   /* Function */
-  Scope* global;
+  Scope *global;
 } AST;
 
-void ast_deinit(AST* ast);
-void ast_init(AST* ast, const uint8_t* src_base);
-void ast_dump(FILE* file, AST* ast);
+void ast_deinit(AST *ast);
+void ast_init(AST *ast, const uint8_t *src_base);
+void ast_dump(FILE *file, AST *ast);
 #endif

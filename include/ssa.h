@@ -29,7 +29,7 @@ enum {
 
 extern const uint8_t inst_arity_tbl[];
 extern const uint8_t inst_returns_tbl[];
-extern const char* inst_name_tbl[];
+extern const char *inst_name_tbl[];
 
 typedef struct {
   int t;
@@ -45,7 +45,7 @@ typedef struct {
 typedef struct BBlock {
   Vector insts; /* Inst */
   /* Null if last block in function */
-  struct BBlock* next;
+  struct BBlock *next;
 } SSA_BBlock;
 
 typedef struct {
@@ -54,7 +54,7 @@ typedef struct {
 } SSA_Reg;
 
 typedef struct {
-  SSA_BBlock* entry;
+  SSA_BBlock *entry;
   Vector params; /* RegId */
   Vector regs;   /* SSA_Reg */
   SourcePosition name;
@@ -65,9 +65,9 @@ typedef struct {
   Vector fns; /* SSA_Function */
 } SSA_Prog;
 
-SSA_BBlock* bblock_init(MemPool* pool);
-SSA_Inst* bblock_append(SSA_BBlock* block, MemPool* pool);
-void bblock_finish(SSA_BBlock* block, SSA_BBlock* next);
-void ssa_prog_dump(FILE* file, SSA_Prog* prog, int reg_dump);
+SSA_BBlock *bblock_init(MemPool *pool);
+SSA_Inst *bblock_append(SSA_BBlock *block, MemPool *pool);
+void bblock_finish(SSA_BBlock *block, SSA_BBlock *next);
+void ssa_prog_dump(FILE *file, SSA_Prog *prog, int reg_dump);
 
 #endif

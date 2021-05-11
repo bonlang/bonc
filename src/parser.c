@@ -5,17 +5,19 @@
 #include "ast.h"
 #include "lexer.h"
 
-const uint8_t* src_base;
+const uint8_t *src_base;
 
-static Expr* make_expr(AST* ast, int t, SourcePosition pos) {
-  Expr* ret = mempool_alloc(&ast->pool, sizeof(Expr));
+static Expr *
+make_expr(AST *ast, int t, SourcePosition pos) {
+  Expr *ret = mempool_alloc(&ast->pool, sizeof(Expr));
   ret->t = t;
   ret->pos = pos;
   ret->type = NULL;
   return ret;
 }
 
-static Token expect(int t, const char* err_msg) {
+static Token
+expect(int t, const char *err_msg) {
   Token ret = lexer_next();
   if (ret.t != t) {
     log_source_err(err_msg, src_base, ret.pos);
@@ -23,25 +25,26 @@ static Token expect(int t, const char* err_msg) {
   return ret;
 }
 
-static Expr* parse_expr(AST* ast);
+static Expr *parse_expr(AST *ast);
 
 static const size_t intlit_pos_sz[] = {2, 2, 3, 3, 3, 3, 3, 3, 0};
 
-static inline Expr* make_intlit_expr(AST* ast, SourcePosition whole_pos,
-                                     int t) {
-  Expr* ret = make_expr(ast, EXPR_INT, whole_pos);
+static inline Expr *
+make_intlit_expr(AST *ast, SourcePosition whole_pos, int t) {
+  Expr *ret = make_expr(ast, EXPR_INT, whole_pos);
   ret->data.intlit.literal = whole_pos;
   ret->data.intlit.literal.sz -= intlit_pos_sz[t];
   ret->data.intlit.type = t;
   return ret;
 }
 
-static Expr* parse_funcall(AST* ast, Token name_tok) {
+static Expr *
+parse_funcall(AST *ast, Token name_tok) {
   lexer_next();
   Vector args;
-  vector_init(&args, sizeof(Expr*), &ast->pool);
+  vector_init(&args, sizeof(Expr *), &ast->pool);
   while (lexer_peek().t != TOK_RPAREN) {
-    Expr* temp = parse_expr(ast);
+    Expr *temp = parse_expr(ast);
     vector_push(&args, &temp, &ast->pool);
     if (lexer_peek().t != TOK_COMMA) {
       break;
@@ -49,14 +52,15 @@ static Expr* parse_funcall(AST* ast, Token name_tok) {
     lexer_next();
   }
   Token last_paren = expect(TOK_RPAREN, "expected ')'");
-  Expr* ret =
+  Expr *ret =
       make_expr(ast, EXPR_FUNCALL, combine_pos(name_tok.pos, last_paren.pos));
   ret->data.funcall.args = args;
   ret->data.funcall.name = name_tok.pos;
   return ret;
 }
 
-static Expr* parse_primary(AST* ast) {
+static Expr *
+parse_primary(AST *ast) {
   Token tok = lexer_next();
   switch (tok.t) {
     case TOK_INT:
@@ -66,18 +70,20 @@ static Expr* parse_primary(AST* ast) {
         return parse_funcall(ast, tok);
       }
       return make_expr(ast, EXPR_VAR, tok.pos);
-    case TOK_LPAREN: {
-      Expr* ret = parse_expr(ast);
-      expect(TOK_RPAREN, "expected ')'");
-      return ret;
-    }
+    case TOK_LPAREN:
+      {
+        Expr *ret = parse_expr(ast);
+        expect(TOK_RPAREN, "expected ')'");
+        return ret;
+      }
     default:
       log_source_err("expected expression", src_base, tok.pos);
       return NULL; /* unreachable */
   }
 }
 
-static int parse_binop() {
+static int
+parse_binop() {
   Token tok = lexer_next();
   switch (tok.t) {
     case TOK_ADD:
@@ -105,13 +111,14 @@ static int parse_binop() {
   exit(EXIT_FAILURE);
 }
 
-static Expr* parse_factor(AST* ast) {
-  Expr* ret = parse_primary(ast);
+static Expr *
+parse_factor(AST *ast) {
+  Expr *ret = parse_primary(ast);
   Token tok;
   while ((tok = lexer_peek()).t == TOK_MUL || tok.t == TOK_DIV) {
     int op = parse_binop();
-    Expr* right = parse_primary(ast);
-    Expr* new_ret =
+    Expr *right = parse_primary(ast);
+    Expr *new_ret =
         make_expr(ast, EXPR_BINOP, combine_pos(ret->pos, right->pos));
     new_ret->data.binop.left = ret;
     new_ret->data.binop.right = right;
@@ -121,13 +128,14 @@ static Expr* parse_factor(AST* ast) {
   return ret;
 }
 
-static Expr* parse_term(AST* ast) {
-  Expr* ret = parse_factor(ast);
+static Expr *
+parse_term(AST *ast) {
+  Expr *ret = parse_factor(ast);
   Token tok;
   while ((tok = lexer_peek()).t == TOK_ADD || tok.t == TOK_SUB) {
     int op = parse_binop();
-    Expr* right = parse_factor(ast);
-    Expr* new_ret =
+    Expr *right = parse_factor(ast);
+    Expr *new_ret =
         make_expr(ast, EXPR_BINOP, combine_pos(ret->pos, right->pos));
     new_ret->data.binop.left = ret;
     new_ret->data.binop.right = right;
@@ -137,15 +145,16 @@ static Expr* parse_term(AST* ast) {
   return ret;
 }
 
-static Expr* parse_comp(AST* ast) {
-  Expr* ret = parse_term(ast);
+static Expr *
+parse_comp(AST *ast) {
+  Expr *ret = parse_term(ast);
   Token tok;
   while ((tok = lexer_peek()).t == TOK_DEQ || tok.t == TOK_NEQ ||
          tok.t == TOK_GR || tok.t == TOK_LE || tok.t == TOK_GREQ ||
          tok.t == TOK_LEEQ) {
     int op = parse_binop();
-    Expr* right = parse_term(ast);
-    Expr* new_ret =
+    Expr *right = parse_term(ast);
+    Expr *new_ret =
         make_expr(ast, EXPR_BINOP, combine_pos(ret->pos, right->pos));
     new_ret->data.binop.left = ret;
     new_ret->data.binop.right = right;
@@ -155,9 +164,13 @@ static Expr* parse_comp(AST* ast) {
   return ret;
 }
 
-static inline Expr* parse_expr(AST* ast) { return parse_comp(ast); }
+static inline Expr *
+parse_expr(AST *ast) {
+  return parse_comp(ast);
+}
 
-static Type* parse_type(AST* ast) {
+static Type *
+parse_type(AST *ast) {
   (void)ast; /* will need this later for allocations */
   Token type_tok = lexer_next();
   switch (type_tok.t) {
@@ -184,7 +197,8 @@ static Type* parse_type(AST* ast) {
   return NULL;
 }
 
-static void parse_let(AST* ast, Stmt* stmt, int mut) {
+static void
+parse_let(AST *ast, Stmt *stmt, int mut) {
   Token first_tok = lexer_next();
   stmt->t = STMT_LET;
   Token var_name = expect(TOK_SYM, "expected variable name");
@@ -216,13 +230,15 @@ static void parse_let(AST* ast, Stmt* stmt, int mut) {
   stmt->data.let.mut = mut;
 }
 
-static void parse_expr_stmt(AST* ast, Stmt* stmt) {
+static void
+parse_expr_stmt(AST *ast, Stmt *stmt) {
   stmt->t = STMT_EXPR;
   stmt->data.expr = parse_expr(ast);
   expect(TOK_SEMICOLON, "expected ';'");
 }
 
-static void parse_return(AST* ast, Stmt* stmt) {
+static void
+parse_return(AST *ast, Stmt *stmt) {
   lexer_next(); /* skip 'return' */
   stmt->t = STMT_RETURN;
   if (lexer_peek().t == TOK_SEMICOLON) {
@@ -234,7 +250,8 @@ static void parse_return(AST* ast, Stmt* stmt) {
   }
 }
 
-void parse_block(Block* block, AST* ast) {
+void
+parse_block(Block *block, AST *ast) {
   lexer_next(); /* skip '{' */
   vector_init(&block->stmts, sizeof(Stmt), &ast->pool);
   while (1) {
@@ -259,7 +276,8 @@ void parse_block(Block* block, AST* ast) {
   }
 }
 
-void parse_fn(AST* ast, Function* function) {
+void
+parse_fn(AST *ast, Function *function) {
   expect(TOK_FN, "expected 'fn'");
 
   Token name_tok = expect(TOK_SYM, "expected function name");
@@ -270,7 +288,7 @@ void parse_fn(AST* ast, Function* function) {
   vector_init(&function->params, sizeof(Param), &ast->pool);
 
   while (lexer_peek().t != TOK_RPAREN) {
-    Param* param = vector_alloc(&function->params, &ast->pool);
+    Param *param = vector_alloc(&function->params, &ast->pool);
     Token name_tok = expect(TOK_SYM, "expected param name");
     param->name = name_tok.pos;
 
@@ -290,7 +308,8 @@ void parse_fn(AST* ast, Function* function) {
   parse_block(&function->body, ast);
 }
 
-AST parse_ast(const uint8_t* src) {
+AST
+parse_ast(const uint8_t *src) {
   AST ret;
 
   ast_init(&ret, src);

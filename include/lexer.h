@@ -81,7 +81,7 @@ typedef struct {
   SourcePosition pos;
 } Token;
 
-void lexer_init(const uint8_t* buf, size_t sz);
+void lexer_init(const uint8_t *buf, size_t sz);
 
 Token lexer_next();
 Token lexer_peek();

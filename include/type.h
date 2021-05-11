@@ -21,7 +21,7 @@ typedef struct Type {
   int t;
   union {
     struct {
-      struct Type* ret;
+      struct Type *ret;
       Vector args; /* Type* */
     } fn;
   } data;

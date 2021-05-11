@@ -6,9 +6,10 @@ enum {
   RETURN_WRONG,
 };
 
-static int check_fn(AST* ast, Function* fn) {
+static int
+check_fn(AST *ast, Function *fn) {
   for (size_t i = 0; i < fn->body.stmts.items; i++) {
-    Stmt* stmt = vector_idx(&fn->body.stmts, i);
+    Stmt *stmt = vector_idx(&fn->body.stmts, i);
     switch (stmt->t) {
       case STMT_LET:
       case STMT_EXPR:
@@ -32,9 +33,10 @@ static int check_fn(AST* ast, Function* fn) {
   return (fn->ret_type->t == TYPE_VOID) ? RETURN_RIGHT : RETURN_NEVER;
 }
 
-void check_returns(AST* ast) {
+void
+check_returns(AST *ast) {
   for (size_t i = 0; i < ast->fns.items; i++) {
-    Function* fn = vector_idx(&ast->fns, i);
+    Function *fn = vector_idx(&ast->fns, i);
     switch (check_fn(ast, fn)) {
       case RETURN_RIGHT:
         break;

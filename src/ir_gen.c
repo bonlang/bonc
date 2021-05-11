@@ -88,8 +88,8 @@ static RegId translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
       SSA_Inst* inst = bblock_append(block, pool);
       inst->sz = type_sz(expr->type->t);
       inst->t = translate_binop(expr->type->t, expr->data.binop.op);
-      inst->data.binop.op1 = obj1;
-      inst->data.binop.op2 = obj2;
+      inst->data.operands[0] = obj1;
+      inst->data.operands[1] = obj2;
       inst->result = new_reg(fn, type_sz(expr->type->t), pool);
       return inst->result;
     }
@@ -110,14 +110,14 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
 
         inst_init(inst, INST_COPY, type_sz(stmt->data.let.value->type->t),
                   sym_table_reg(fn, stmt->data.let.var, pool));
-        inst->data.copy = obj;
+        inst->data.operands[0] = obj;
       }
       break;
     case STMT_EXPR: {
       RegId op = translate_expr(stmt->data.expr, scope, block, fn, pool);
       SSA_Inst* inst = bblock_append(block, pool);
       inst_init(inst, INST_COPY, type_sz(stmt->data.expr->type->t), 0);
-      inst->data.copy = op;
+      inst->data.operands[0] = op;
       break;
     }
     case STMT_RETURN: {
@@ -130,7 +130,7 @@ static void translate_stmt(Stmt* stmt, Scope* scope, SSA_BBlock* block,
                 stmt->data.let.value == NULL
                     ? SZ_NONE
                     : type_sz(stmt->data.ret->type->t));
-      inst->data.ret = op;
+      inst->data.operands[0] = op;
       break;
     }
     default:

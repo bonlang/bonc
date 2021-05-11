@@ -2,6 +2,16 @@
 
 #include <inttypes.h>
 
+const uint8_t inst_arity[] = {
+  [INST_ADD]  = 2,
+  [INST_SUB]  = 2,
+  [INST_MUL]  = 2,
+  [INST_IDIV] = 2,
+  [INST_UDIV] = 2,
+  [INST_COPY] = 1,
+  [INST_RET]  = 1,
+};
+
 SSA_BBlock* bblock_init(MemPool* pool) {
   SSA_BBlock* block = mempool_alloc(pool, sizeof(SSA_BBlock));
   vector_init(&block->insts, sizeof(SSA_Inst), pool);
@@ -46,12 +56,12 @@ static void inst_dump(FILE* file, SSA_Inst* inst) {
     case INST_UDIV:
       dump_nullable_reg(file, inst->result);
       fprintf(file, " =%s %s %%%ld %%%ld", sz_name_tbl[inst->sz],
-              binop_name_tbl[inst->t - INST_ADD], inst->data.binop.op1,
-              inst->data.binop.op2);
+              binop_name_tbl[inst->t - INST_ADD], inst->data.operands[0],
+              inst->data.operands[1]);
       break;
     case INST_RET:
       fprintf(file, "ret ");
-      dump_nullable_reg(file, inst->data.ret);
+      dump_nullable_reg(file, inst->data.operands[0]);
       break;
     default:
       log_internal_err("cannot print instruction: %d", inst->t);

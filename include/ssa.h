@@ -27,18 +27,15 @@ enum {
   INST_IMM,
 };
 
+extern const uint8_t inst_arity[];
+
 typedef struct {
   int t;
   int sz;
   RegId result;
 
   union {
-    struct {
-      RegId op1;
-      RegId op2;
-    } binop;
-    RegId copy;
-    RegId ret;
+    RegId operands[2];
     SourcePosition imm;
   } data;
 } SSA_Inst;

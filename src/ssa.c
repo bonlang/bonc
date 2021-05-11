@@ -2,7 +2,7 @@
 
 #include <inttypes.h>
 
-const uint8_t inst_arity[] = {
+const uint8_t inst_arity_tbl[] = {
   [INST_ADD]  = 2,
   [INST_SUB]  = 2,
   [INST_MUL]  = 2,
@@ -10,6 +10,29 @@ const uint8_t inst_arity[] = {
   [INST_UDIV] = 2,
   [INST_COPY] = 1,
   [INST_RET]  = 1,
+  [INST_IMM]  = 1,
+};
+
+const uint8_t inst_returns_tbl[] = {
+  [INST_ADD]  = 1,
+  [INST_SUB]  = 1,
+  [INST_MUL]  = 1,
+  [INST_IDIV] = 1,
+  [INST_UDIV] = 1,
+  [INST_COPY] = 1,
+  [INST_RET]  = 0,
+  [INST_IMM]  = 1,
+};
+
+const char* inst_name_tbl[] = {
+  [INST_ADD]  = "add",
+  [INST_SUB]  = "sub",
+  [INST_MUL]  = "mul",
+  [INST_IDIV] = "idiv",
+  [INST_UDIV] = "udiv",
+  [INST_COPY] = "copy",
+  [INST_RET]  = "ret",
+  [INST_IMM]  = "imm",
 };
 
 SSA_BBlock* bblock_init(MemPool* pool) {
@@ -27,8 +50,7 @@ void bblock_finalize(SSA_BBlock* block, SSA_BBlock* next) {
   block->next = next;
 }
 
-const char* binop_name_tbl[] = {"add", "sub", "mul", "idiv", "udiv"};
-const char* sz_name_tbl[] = {"", "8", "16", "32", "64"};
+static const char* sz_name_tbl[] = {"", "8", "16", "32", "64"};
 
 static void dump_nullable_reg(FILE* file, RegId reg) {
   if (reg == 0) {
@@ -39,33 +61,19 @@ static void dump_nullable_reg(FILE* file, RegId reg) {
 }
 
 static void inst_dump(FILE* file, SSA_Inst* inst) {
-  switch (inst->t) {
-    case INST_COPY:
-      dump_nullable_reg(file, inst->result);
-      fprintf(file, " =%s copy %%%ld", sz_name_tbl[inst->sz], inst->result);
-      break;
-    case INST_IMM:
-      dump_nullable_reg(file, inst->result);
-      fprintf(file, " =%s $%.*s", sz_name_tbl[inst->sz], (int)inst->data.imm.sz,
-              (char*)inst->data.imm.start);
-      break;
-    case INST_ADD:
-    case INST_SUB:
-    case INST_MUL:
-    case INST_IDIV:
-    case INST_UDIV:
-      dump_nullable_reg(file, inst->result);
-      fprintf(file, " =%s %s %%%ld %%%ld", sz_name_tbl[inst->sz],
-              binop_name_tbl[inst->t - INST_ADD], inst->data.operands[0],
-              inst->data.operands[1]);
-      break;
-    case INST_RET:
-      fprintf(file, "ret ");
-      dump_nullable_reg(file, inst->data.operands[0]);
-      break;
-    default:
-      log_internal_err("cannot print instruction: %d", inst->t);
+  if (inst->t != INST_IMM) {
+    dump_nullable_reg(file, inst->result);
+    fprintf(file, " =%s %s", sz_name_tbl[inst->sz], inst_name_tbl[inst->t]);
+
+    for (int i = 0; i < inst_arity_tbl[inst->t]; i++) {
+      fprintf(file, " %%%" PRIu64, inst->data.operands[i]);
+    }
+  } else {
+    dump_nullable_reg(file, inst->result);
+    fprintf(file, " =%s $%.*s", sz_name_tbl[inst->sz], (int)inst->data.imm.sz,
+            (char*)inst->data.imm.start);
   }
+
   fprintf(file, "\n");
 }
 

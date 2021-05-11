@@ -27,7 +27,9 @@ enum {
   INST_IMM,
 };
 
-extern const uint8_t inst_arity[];
+extern const uint8_t inst_arity_tbl[];
+extern const uint8_t inst_returns_tbl[];
+extern const char* inst_name_tbl[];
 
 typedef struct {
   int t;

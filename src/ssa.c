@@ -32,7 +32,7 @@ static void inst_dump(FILE* file, SSA_Inst* inst) {
   switch (inst->t) {
     case INST_COPY:
       dump_nullable_reg(file, inst->result);
-      fprintf(file, " =%s copy %ld", sz_name_tbl[inst->sz], inst->result);
+      fprintf(file, " =%s copy %%%ld", sz_name_tbl[inst->sz], inst->result);
       break;
     case INST_IMM:
       dump_nullable_reg(file, inst->result);
@@ -66,7 +66,7 @@ void bblock_dump(FILE* file, SSA_BBlock* block) {
   }
 }
 
-void function_dump(FILE* file, SSA_Fn* fn) {
+void function_dump(FILE* file, SSA_Fn* fn, int reg_dump) {
   fprintf(file, "fn %.*s(", (int)fn->name.sz, (char*)fn->name.start);
 
   if (fn->params.items > 0) {
@@ -83,11 +83,19 @@ void function_dump(FILE* file, SSA_Fn* fn) {
   }
 
   bblock_dump(file, fn->entry);
+
+  if (reg_dump) {
+    fprintf(file, "\n");
+    for (size_t i = 0; i < fn->regs.items; i++) {
+      SSA_Reg* reg = vector_idx(&fn->regs, i);
+      fprintf(file, "| %zd | bit%s |\n", i + 1, sz_name_tbl[reg->sz]);
+    }
+  }
   fprintf(file, "\n");
 }
 
-void ssa_prog_dump(FILE* file, SSA_Prog* prog) {
+void ssa_prog_dump(FILE* file, SSA_Prog* prog, int reg_dump) {
   for (size_t i = 0; i < prog->fns.items; i++) {
-    function_dump(file, vector_idx(&prog->fns, i));
+    function_dump(file, vector_idx(&prog->fns, i), reg_dump);
   }
 }

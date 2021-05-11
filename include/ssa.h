@@ -69,6 +69,6 @@ typedef struct {
 SSA_BBlock* bblock_init(MemPool* pool);
 SSA_Inst* bblock_append(SSA_BBlock* block, MemPool* pool);
 void bblock_finish(SSA_BBlock* block, SSA_BBlock* next);
-void ssa_prog_dump(FILE* file, SSA_Prog* prog);
+void ssa_prog_dump(FILE* file, SSA_Prog* prog, int reg_dump);
 
 #endif

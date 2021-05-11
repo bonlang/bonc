@@ -73,7 +73,7 @@ static RegId translate_expr(Expr* expr, Scope* scope, SSA_BBlock* block,
     case EXPR_INT: {
       SSA_Inst* inst = bblock_append(block, pool);
       inst_init(inst, INST_IMM, type_sz(expr->type->t),
-                new_reg(fn, expr->type->t, pool));
+                new_reg(fn, type_sz(expr->type->t), pool));
       inst->data.imm = expr->data.intlit.literal;
       return inst->result;
     }

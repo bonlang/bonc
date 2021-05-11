@@ -72,11 +72,11 @@ void function_dump(FILE* file, SSA_Fn* fn, int reg_dump) {
   if (fn->params.items > 0) {
     for (size_t i = 0; i < fn->params.items - 1; i++) {
       RegId param = *((RegId*)vector_idx(&fn->params, i));
-      SSA_Reg* reg = vector_idx(&fn->regs, param);
+      SSA_Reg* reg = vector_idx(&fn->regs, param - 1);
       fprintf(file, "%%%ld: %s, ", param, sz_name_tbl[reg->sz]);
     }
     RegId param = *((RegId*)vector_idx(&fn->params, fn->params.items - 1));
-    SSA_Reg* reg = vector_idx(&fn->regs, param);
+    SSA_Reg* reg = vector_idx(&fn->regs, param - 1);
     fprintf(file, "%%%ld: %s)\n", param, sz_name_tbl[reg->sz]);
   } else {
     fprintf(file, ")\n");

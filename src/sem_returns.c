@@ -14,8 +14,12 @@ static int check_fn(AST* ast, Function* fn) {
       case STMT_EXPR:
         break;
       case STMT_RETURN:
-        if (fn->ret_type->t == TYPE_VOID && stmt->data.ret == NULL) {
-          return RETURN_RIGHT;
+        if (stmt->data.ret == NULL) {
+          if (fn->ret_type->t == TYPE_VOID) {
+            return RETURN_RIGHT;
+          } else {
+            return RETURN_WRONG;
+          }
         }
         return (coerce_type(BINOP_ASSIGN, &fn->ret_type, &stmt->data.ret->type,
                             &ast->pool) != NULL)

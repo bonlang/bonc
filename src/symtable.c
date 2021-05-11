@@ -48,11 +48,14 @@ ScopeEntry* scope_insert(MemPool* pool, Scope* scope, SourcePosition pos,
 
 ScopeEntry* scope_find(Scope* scope, SourcePosition pos) {
   size_t idx = hash_str(pos) % scope->nbuckets;
-  for (ScopeEntry* iter = scope->buckets[idx]; iter != NULL;
-       iter = iter->next) {
-    if (memcmp(pos.start, iter->pos.start, MIN(pos.sz, iter->pos.sz)) == 0) {
-      return iter;
+  while (scope != NULL) {
+    for (ScopeEntry* iter = scope->buckets[idx]; iter != NULL;
+         iter = iter->next) {
+      if (memcmp(pos.start, iter->pos.start, MIN(pos.sz, iter->pos.sz)) == 0) {
+        return iter;
+      }
     }
+    scope = scope->up;
   }
   return NULL;
 }

@@ -2,6 +2,7 @@
 #define TYPE_H
 
 enum {
+  /* statically allocated types */
   TYPE_U8,
   TYPE_U16,
   TYPE_U32,
@@ -12,10 +13,18 @@ enum {
   TYPE_I64,
   TYPE_BOOL,
   TYPE_VOID,
+  /* dynamically allocated types */
+  TYPE_FN,
 };
 
 typedef struct Type {
   int t;
+  union {
+    struct {
+      struct Type* ret;
+      Vector args; /* Type* */
+    } fn;
+  } data;
 } Type;
 
 extern Type U8_const;

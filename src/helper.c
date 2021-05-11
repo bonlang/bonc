@@ -12,7 +12,7 @@
 #define WHITE_UNDERLINE "\033[1;37m"
 #define RESET "\033[0m"
 
-#define POOL_MAX_SZ 16777216
+#define POOL_MAX_SZ 4294967296
 #define POOL_CHUNK_SZ 4096
 
 SourcePosition combine_pos(SourcePosition pos1, SourcePosition pos2) {
@@ -112,7 +112,7 @@ void* mempool_alloc(MemPool* pool, size_t amount) {
   if (pool->size + amount + 1 >= pool->alloc) {
     size_t needed = size_needed(amount);
     if (pool->alloc + needed > POOL_MAX_SZ) {
-      exit(1);
+      log_internal_err("out of memory in mmap pool", NULL);
     }
     mprotect(pool->base + pool->alloc, needed, PROT_READ | PROT_WRITE);
     pool->alloc += needed;

@@ -29,6 +29,7 @@ enum {
   EXPR_INT,
   EXPR_VAR,
   EXPR_BINOP,
+  EXPR_FUNCALL,
 };
 
 typedef struct Expr {
@@ -47,6 +48,11 @@ typedef struct Expr {
       SourcePosition literal;
       int type;
     } intlit;
+    struct {
+      SourcePosition name;
+      ScopeEntry* fun;
+      Vector args; /* Expr* */
+    } funcall;
   } data;
 
 } Expr;
@@ -90,6 +96,7 @@ typedef struct {
   SourcePosition pos;
   SourcePosition name;
   Block body;
+  ScopeEntry* entry;
   Vector params; /* Param */
   Type* ret_type;
   Scope* scope;

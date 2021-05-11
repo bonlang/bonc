@@ -36,12 +36,35 @@ static inline Expr* make_intlit_expr(AST* ast, SourcePosition whole_pos,
   return ret;
 }
 
+static Expr* parse_funcall(AST* ast, Token name_tok) {
+  lexer_next();
+  Vector args;
+  vector_init(&args, sizeof(Expr*), &ast->pool);
+  while (lexer_peek().t != TOK_RPAREN) {
+    Expr* temp = parse_expr(ast);
+    vector_push(&args, &temp, &ast->pool);
+    if (lexer_peek().t != TOK_COMMA) {
+      break;
+    }
+    lexer_next();
+  }
+  Token last_paren = expect(TOK_RPAREN, "expected ')'");
+  Expr* ret =
+      make_expr(ast, EXPR_FUNCALL, combine_pos(name_tok.pos, last_paren.pos));
+  ret->data.funcall.args = args;
+  ret->data.funcall.name = name_tok.pos;
+  return ret;
+}
+
 static Expr* parse_primary(AST* ast) {
   Token tok = lexer_next();
   switch (tok.t) {
     case TOK_INT:
       return make_intlit_expr(ast, tok.pos, tok.intlit_type);
     case TOK_SYM:
+      if (lexer_peek().t == TOK_LPAREN) {
+        return parse_funcall(ast, tok);
+      }
       return make_expr(ast, EXPR_VAR, tok.pos);
     case TOK_LPAREN: {
       Expr* ret = parse_expr(ast);

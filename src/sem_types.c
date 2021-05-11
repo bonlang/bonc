@@ -53,6 +53,33 @@ static void resolve_expr(Expr* expr, AST* ast, MemPool* pool) {
         log_source_err("cannot coerce types", ast->src_base, expr->pos);
       }
       break;
+    case EXPR_FUNCALL: {
+      Type* fn_type = expr->data.funcall.fun->inf.type;
+      if (fn_type->t != TYPE_FN) {
+        log_source_err("cannot call a non-function value", ast->src_base,
+                       expr->pos);
+      }
+      if (fn_type->data.fn.args.items != expr->data.funcall.args.items) {
+        log_source_err(
+            "too %s parameters given in function call", ast->src_base,
+            expr->pos,
+            fn_type->data.fn.args.items > expr->data.funcall.args.items
+                ? "few"
+                : "many");
+      }
+      for (size_t i = 0; i < fn_type->data.fn.args.items; i++) {
+        Type** expected = vector_idx(&fn_type->data.fn.args, i);
+        Expr* temp_expr = *((Expr**)vector_idx(&expr->data.funcall.args, i));
+        resolve_expr(temp_expr, ast, pool);
+        Type** given = &temp_expr->type;
+        if (coerce_type(BINOP_ASSIGN, expected, given, pool) == NULL) {
+          log_source_err("cannot coerce parameter", ast->src_base,
+                         temp_expr->pos);
+        }
+      }
+      expr->type = fn_type->data.fn.ret;
+      break;
+    }
     default:
       log_internal_err("invalid expr type %d", expr->t);
   }
@@ -93,7 +120,27 @@ static void resolve_fn(AST* ast, Function* fn) {
   }
 }
 
+static Type* build_fn_type(AST* ast, Function* fn) {
+  Type* fn_type = mempool_alloc(&ast->pool, sizeof(Type));
+  fn_type->t = TYPE_FN;
+  fn_type->data.fn.ret = fn->ret_type;
+
+  vector_init(&fn_type->data.fn.args, sizeof(Type*), &ast->pool);
+  for (size_t i = 0; i < fn->params.items; i++) {
+    Param* param = vector_idx(&fn->params, i);
+    vector_push(&fn_type->data.fn.args, &param->type, &ast->pool);
+  }
+
+  return fn_type;
+}
+
 void resolve_types(AST* ast) {
+  for (size_t i = 0; i < ast->fns.items; i++) {
+    Function* fn = vector_idx(&ast->fns, i);
+    Type* fn_type = build_fn_type(ast, fn);
+    fn->entry->inf.type = fn_type;
+  }
+
   for (size_t i = 0; i < ast->fns.items; i++) {
     resolve_fn(ast, vector_idx(&ast->fns, i));
   }

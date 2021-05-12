@@ -143,6 +143,14 @@ vector_init(Vector *vec, size_t it_sz, MemPool *pool) {
 }
 
 void
+vector_init_size(Vector *vec, size_t it_sz, MemPool *pool, size_t items) {
+  vec->it_sz = it_sz;
+  vec->items = items;
+  vec->alloc = items;
+  vec->data = mempool_alloc(pool, it_sz * vec->alloc);
+}
+
+void
 vector_resize(Vector *vec, MemPool *pool) {
   uint8_t *new_data = mempool_alloc(pool, vec->alloc * vec->it_sz * 2);
   memcpy(new_data, vec->data, vec->items * vec->it_sz);

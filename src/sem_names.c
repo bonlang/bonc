@@ -30,7 +30,7 @@ resolve_expr(AST *ast, Scope *scope, Expr *expr) {
           Expr *temp_expr = *((Expr **)vector_idx(&expr->data.funcall.args, i));
           resolve_expr(ast, scope, temp_expr);
         }
-        expr->data.funcall.fun = entry;
+        expr->data.funcall.fn = entry;
       }
       break;
     case EXPR_INT:

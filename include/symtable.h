@@ -11,6 +11,7 @@ typedef struct {
   int mut;
   uint64_t id; /* used in IR generation */
   struct Type *type;
+  void *fn; /* Stores the pointer to a SSA_Fn after its creation*/
 } VarInfo;
 
 VarInfo make_var_info(int mut, struct Type *type);

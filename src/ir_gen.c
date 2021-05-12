@@ -50,7 +50,10 @@ translate_binop(int typ, int binop) {
     case BINOP_SUB:
       return INST_SUB;
     case BINOP_MUL:
-      return INST_MUL;
+      if (is_unsigned(typ)) {
+        return INST_UMUL;
+      }
+      return INST_IMUL;
     case BINOP_DIV:
       if (is_unsigned(typ)) {
         return INST_UDIV;
@@ -100,6 +103,25 @@ translate_expr(Expr *expr, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
         inst->data.operands[0] = obj1;
         inst->data.operands[1] = obj2;
         inst->result = new_reg(fn, type_sz(expr->type->t), pool);
+        return inst->result;
+      }
+    case EXPR_FUNCALL:
+      {
+        Vector passed_params;
+        vector_init(&passed_params, sizeof(RegId), pool);
+        for (size_t i = 0; i < expr->data.funcall.args.items; i++) {
+          Expr *temp_expr = *((Expr **)vector_idx(&expr->data.funcall.args, i));
+          RegId temp_id = translate_expr(temp_expr, scope, block, fn, pool);
+          vector_push(&passed_params, &temp_id, pool);
+        }
+        SSA_Inst *inst = bblock_append(block, pool);
+        inst_init(inst, INST_CALLFN, type_sz(expr->type->t),
+                  new_reg(fn, type_sz(expr->type->t), pool));
+        if (expr->data.funcall.fn->inf.fn == NULL) {
+          log_internal_err("cannot call runtime selected functions", NULL);
+        }
+        inst->data.callfn.fn = expr->data.funcall.fn->inf.fn;
+        inst->data.callfn.args = passed_params;
         return inst->result;
       }
     default:
@@ -174,7 +196,12 @@ translate_ast(AST *ast, SSA_Prog *prog, MemPool *pool) {
   vector_init(&prog->fns, sizeof(SSA_Fn), pool);
 
   for (size_t i = 0; i < ast->fns.items; i++) {
-    translate_function(vector_idx(&ast->fns, i), vector_alloc(&prog->fns, pool),
+    Function *fn = vector_idx(&ast->fns, i);
+    SSA_Fn *ssa_fn = vector_alloc(&prog->fns, pool);
+    fn->entry->inf.fn = ssa_fn;
+  }
+  for (size_t i = 0; i < ast->fns.items; i++) {
+    translate_function(vector_idx(&ast->fns, i), vector_idx(&prog->fns, i),
                        pool);
   }
 }

@@ -19,17 +19,21 @@ enum {
 enum {
   INST_ADD,
   INST_SUB,
-  INST_MUL,
+  INST_IMUL,
+  INST_UMUL,
   INST_IDIV,
   INST_UDIV,
   INST_COPY,
   INST_RET,
   INST_IMM,
+  INST_CALLFN,
 };
 
-extern const uint8_t inst_arity_tbl[];
+extern const int inst_arity_tbl[];
 extern const uint8_t inst_returns_tbl[];
 extern const char *inst_name_tbl[];
+
+typedef struct SSA_Fn SSA_Fn;
 
 typedef struct {
   int t;
@@ -38,6 +42,10 @@ typedef struct {
 
   union {
     RegId operands[2];
+    struct {
+      struct SSA_Fn *fn;
+      Vector args; /* RegId */
+    } callfn;
     SourcePosition imm;
   } data;
 } SSA_Inst;
@@ -53,12 +61,12 @@ typedef struct {
   /* more stuff */
 } SSA_Reg;
 
-typedef struct {
+struct SSA_Fn {
   SSA_BBlock *entry;
   Vector params; /* RegId */
   Vector regs;   /* SSA_Reg */
   SourcePosition name;
-} SSA_Fn;
+};
 
 typedef struct {
   RegId next_id;

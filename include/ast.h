@@ -50,7 +50,7 @@ typedef struct Expr {
     } intlit;
     struct {
       SourcePosition name;
-      ScopeEntry *fun;
+      ScopeEntry *fn;
       Vector args; /* Expr* */
     } funcall;
   } data;

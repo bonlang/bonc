@@ -16,11 +16,11 @@
 #include "ssa.h"
 
 struct {
-  int ast_dump : 1;
-  int ir_dump : 1;
-  int reg_dump : 1;
-  int help : 1;
-  int version : 1;
+  int ast_dump;
+  int ir_dump;
+  int reg_dump;
+  int help;
+  int version;
   const char *in_file;
 } flags;
 
@@ -49,6 +49,10 @@ main(int argc, char *argv[]) {
 
   if (!flags.in_file) {
     log_err_final("no input file specified");
+  }
+
+  if (!flags.ir_dump && flags.reg_dump) {
+    log_err_final("cannot print registers without printing the IR");
   }
 
   if (flags.help) {

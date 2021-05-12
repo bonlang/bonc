@@ -57,7 +57,7 @@ resolve_expr(Expr *expr, AST *ast, MemPool *pool) {
       break;
     case EXPR_FUNCALL:
       {
-        Type *fn_type = expr->data.funcall.fun->inf.type;
+        Type *fn_type = expr->data.funcall.fn->inf.type;
         if (fn_type->t != TYPE_FN) {
           log_source_err("cannot call a non-function value", ast->src_base,
                          expr->pos);

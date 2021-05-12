@@ -45,6 +45,7 @@ typedef struct {
 } Vector;
 
 void vector_init(Vector *vec, size_t it_sz, MemPool *pool);
+void vector_init_size(Vector *vec, size_t it_sz, MemPool *pool, size_t items);
 void vector_push(Vector *vec, void *data, MemPool *pool);
 void *vector_idx(Vector *vec, size_t idx); /* returns NULL on out of bounds */
 

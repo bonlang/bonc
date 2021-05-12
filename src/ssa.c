@@ -42,33 +42,35 @@ bblock_finalize(SSA_BBlock *block, SSA_BBlock *next) {
 static const char *sz_name_tbl[] = {"", "8", "16", "32", "64"};
 
 static void
-dump_nullable_reg(FILE *file, RegId reg) {
-  if (reg == 0) {
-    fprintf(file, "_");
-  } else {
-    fprintf(file, "%%%ld", reg);
+dump_nullable_reg(FILE *file, RegId reg, int sz) {
+  if (reg != 0) {
+    fprintf(file, "%%%ld =%s ", reg, sz_name_tbl[sz]);
   }
 }
 
 static void
 inst_dump(FILE *file, SSA_Inst *inst) {
   if (inst->t == INST_IMM) {
-    dump_nullable_reg(file, inst->result);
-    fprintf(file, " =%s $%.*s", sz_name_tbl[inst->sz], (int)inst->data.imm.sz,
+    dump_nullable_reg(file, inst->result, inst->sz);
+    fprintf(file, "$%.*s", (int)inst->data.imm.sz,
             (char *)inst->data.imm.start);
   } else if (inst->t == INST_CALLFN) {
-    dump_nullable_reg(file, inst->result);
-    fprintf(file, " =%s callfn %.*s(", sz_name_tbl[inst->sz],
-            (int)inst->data.callfn.fn->name.sz,
+    dump_nullable_reg(file, inst->result, inst->sz);
+    fprintf(file, "callfn %.*s(", (int)inst->data.callfn.fn->name.sz,
             (char *)inst->data.callfn.fn->name.start);
-    for (size_t i = 0; i < inst->data.callfn.args.items; i++) {
-      fprintf(file, "%%%zd, ",
-              *((RegId *)vector_idx(&inst->data.callfn.args, i)));
+    if (inst->data.callfn.args.items != 0) {
+      for (size_t i = 0; i < inst->data.callfn.args.items - 1; i++) {
+        fprintf(file, "%%%zd, ",
+                *((RegId *)vector_idx(&inst->data.callfn.args, i)));
+      }
+      fprintf(file, "%%%zd",
+              *((RegId *)vector_idx(&inst->data.callfn.args,
+                                    inst->data.callfn.args.items - 1)));
     }
-    fprintf(file, ")\n");
+    fprintf(file, ")");
   } else {
-    dump_nullable_reg(file, inst->result);
-    fprintf(file, " =%s %s", sz_name_tbl[inst->sz], inst_name_tbl[inst->t]);
+    dump_nullable_reg(file, inst->result, inst->sz);
+    fprintf(file, "%s", inst_name_tbl[inst->t]);
 
     for (int i = 0; i < inst_arity_tbl[inst->t]; i++) {
       fprintf(file, " %%%" PRIu64, inst->data.operands[i]);

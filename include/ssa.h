@@ -46,7 +46,7 @@ typedef struct {
       struct SSA_Fn *fn;
       Vector args; /* RegId */
     } callfn;
-    SourcePosition imm;
+    uint64_t imm;
   } data;
 } SSA_Inst;
 

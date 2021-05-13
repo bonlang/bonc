@@ -45,7 +45,7 @@ typedef struct Expr {
     } binop;
     ScopeEntry *var;
     struct {
-      SourcePosition literal;
+      uint64_t val;
       int type;
     } intlit;
     struct {

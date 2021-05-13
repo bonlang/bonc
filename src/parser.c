@@ -27,13 +27,30 @@ expect(int t, const char *err_msg) {
 
 static Expr *parse_expr(AST *ast);
 
-static const size_t intlit_pos_sz[] = {2, 2, 3, 3, 3, 3, 3, 3, 0};
+static const size_t intlit_pos_sz[] = {
+    [INTLIT_U8] = 2,  [INTLIT_I8] = 2,  [INTLIT_U16] = 3,
+    [INTLIT_I16] = 3, [INTLIT_U32] = 3, [INTLIT_I32] = 3,
+    [INTLIT_U64] = 3, [INTLIT_I64] = 3, [INTLIT_I64_NONE] = 0};
+
+static int
+pos_to_num(SourcePosition pos, uint64_t *ret) {
+  for (size_t i = 0; i < pos.sz; i++) {
+    if (!__builtin_add_overflow(*ret, pos.start[i] - '0', ret)) {
+      return 0;
+    }
+  }
+  return 1;
+}
 
 static inline Expr *
 make_intlit_expr(AST *ast, SourcePosition whole_pos, int t) {
   Expr *ret = make_expr(ast, EXPR_INT, whole_pos);
-  ret->data.intlit.literal = whole_pos;
-  ret->data.intlit.literal.sz -= intlit_pos_sz[t];
+  whole_pos.sz -= intlit_pos_sz[t];
+  if (pos_to_num(whole_pos, &ret->data.intlit.val)) {
+    whole_pos.sz += intlit_pos_sz[t];
+    log_source_err("overflow on '%.*s'", ast->src_base, whole_pos,
+                   (int)whole_pos.sz, (char *)whole_pos.start);
+  }
   ret->data.intlit.type = t;
   return ret;
 }

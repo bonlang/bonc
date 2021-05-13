@@ -52,8 +52,7 @@ static void
 inst_dump(FILE *file, SSA_Inst *inst) {
   if (inst->t == INST_IMM) {
     dump_nullable_reg(file, inst->result, inst->sz);
-    fprintf(file, "$%.*s", (int)inst->data.imm.sz,
-            (char *)inst->data.imm.start);
+    fprintf(file, "$%" PRIu64, inst->data.imm);
   } else if (inst->t == INST_CALLFN) {
     dump_nullable_reg(file, inst->result, inst->sz);
     fprintf(file, "callfn %.*s(", (int)inst->data.callfn.fn->name.sz,

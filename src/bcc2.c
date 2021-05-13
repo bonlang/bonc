@@ -15,6 +15,7 @@
 #include "semantics.h"
 #include "ssa.h"
 #include "platforms.h"
+#include "spill.h"
 
 struct {
   int ast_dump;
@@ -140,6 +141,8 @@ main(int argc, char *argv[]) {
     printf("IR_DUMP:\n");
     ssa_prog_dump(stdout, &ssa_prog, flags.reg_dump);
   }
+
+  spill_prog(&ssa_prog);
 
   ast_deinit(&ast);
 

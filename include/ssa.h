@@ -7,6 +7,7 @@
 #include "helper.h"
 
 typedef uint64_t RegId;
+typedef uint64_t InstId;
 
 typedef enum {
   SZ_NONE,

@@ -138,11 +138,16 @@ main(int argc, char *argv[]) {
   translate_ast(&ast, &ssa_prog);
 
   if (flags.ir_dump) {
-    printf("IR_DUMP:\n");
+    printf("IR_DUMP ir-gen:\n");
     ssa_prog_dump(stdout, &ssa_prog, flags.reg_dump);
   }
 
   spill_prog(&ssa_prog);
+
+  if (flags.ir_dump) {
+    printf("IR_DUMP post-spill: \n");
+    ssa_prog_dump(stdout, &ssa_prog, flags.reg_dump);
+  }
 
   ast_deinit(&ast);
 

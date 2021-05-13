@@ -3,21 +3,24 @@
 #include <inttypes.h>
 
 const uint8_t inst_arity_tbl[] = {
-    [INST_ADD] = 2,  [INST_SUB] = 2,    [INST_IMUL] = 2, [INST_UMUL] = 2,
-    [INST_IDIV] = 2, [INST_UDIV] = 2,   [INST_COPY] = 1, [INST_RET] = 1,
-    [INST_IMM] = 0,  [INST_CALLFN] = 0,
+    [INST_ADD] = 2,    [INST_SUB] = 2,  [INST_IMUL] = 2, [INST_UMUL] = 2,
+    [INST_IDIV] = 2,   [INST_UDIV] = 2, [INST_COPY] = 1, [INST_ALLOCA] = 1,
+    [INST_STORE] = 2,  [INST_LOAD] = 1, [INST_RET] = 1,  [INST_IMM] = 0,
+    [INST_CALLFN] = 0,
 };
 
 const uint8_t inst_returns_tbl[] = {
-    [INST_ADD] = 1,  [INST_SUB] = 1,    [INST_UMUL] = 1, [INST_IMUL] = 1,
-    [INST_IDIV] = 1, [INST_UDIV] = 1,   [INST_COPY] = 1, [INST_RET] = 0,
-    [INST_IMM] = 1,  [INST_CALLFN] = 1,
+    [INST_ADD] = 1,    [INST_SUB] = 1,  [INST_UMUL] = 1, [INST_IMUL] = 1,
+    [INST_IDIV] = 1,   [INST_UDIV] = 1, [INST_COPY] = 1, [INST_ALLOCA] = 1,
+    [INST_STORE] = 0,  [INST_LOAD] = 1, [INST_RET] = 0,  [INST_IMM] = 1,
+    [INST_CALLFN] = 1,
 };
 
 const char *inst_name_tbl[] = {
-    [INST_ADD] = "add",       [INST_SUB] = "sub",   [INST_IMUL] = "imul",
-    [INST_UMUL] = "umul",     [INST_IDIV] = "idiv", [INST_UDIV] = "udiv",
-    [INST_COPY] = "copy",     [INST_RET] = "ret",   [INST_IMM] = "imm",
+    [INST_ADD] = "add",       [INST_SUB] = "sub",       [INST_IMUL] = "imul",
+    [INST_UMUL] = "umul",     [INST_IDIV] = "idiv",     [INST_UDIV] = "udiv",
+    [INST_COPY] = "copy",     [INST_ALLOCA] = "alloca", [INST_STORE] = "store",
+    [INST_LOAD] = "load",     [INST_RET] = "ret",       [INST_IMM] = "imm",
     [INST_CALLFN] = "callfn",
 };
 

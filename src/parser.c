@@ -225,14 +225,14 @@ parse_let(AST *ast, Stmt *stmt, int mut) {
   if (middle_tok.t == TOK_EQ) {
     stmt->data.let.value = parse_expr(ast);
     stmt->data.let.type = NULL;
-    last_tok = expect(TOK_SEMICOLON, "expected ';'");
+    last_tok = expect(TOK_NEWLINE, "expected newline or ';'");
   } else if (middle_tok.t == TOK_COLON) {
     stmt->data.let.type = parse_type(ast);
     Token equal_tok = lexer_next();
     if (equal_tok.t == TOK_EQ) {
       stmt->data.let.value = parse_expr(ast);
-      last_tok = expect(TOK_SEMICOLON, "expected ';'");
-    } else if (equal_tok.t == TOK_SEMICOLON) {
+      last_tok = expect(TOK_NEWLINE, "expected newline or ';'");
+    } else if (equal_tok.t == TOK_NEWLINE) {
       last_tok = equal_tok;
       stmt->data.let.value = NULL;
     } else {
@@ -251,19 +251,19 @@ static void
 parse_expr_stmt(AST *ast, Stmt *stmt) {
   stmt->t = STMT_EXPR;
   stmt->data.expr = parse_expr(ast);
-  expect(TOK_SEMICOLON, "expected ';'");
+  expect(TOK_NEWLINE, "expected newline or ';'");
 }
 
 static void
 parse_return(AST *ast, Stmt *stmt) {
   lexer_next(); /* skip 'return' */
   stmt->t = STMT_RETURN;
-  if (lexer_peek().t == TOK_SEMICOLON) {
+  if (lexer_peek().t == TOK_NEWLINE) {
     lexer_next();
     stmt->data.ret = NULL;
   } else {
     stmt->data.ret = parse_expr(ast);
-    expect(TOK_SEMICOLON, "expected ';'");
+    expect(TOK_NEWLINE, "expected newline or ';'");
   }
 }
 

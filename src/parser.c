@@ -295,8 +295,6 @@ parse_block(Block *block, AST *ast) {
 
 void
 parse_fn(AST *ast, Function *function) {
-  expect(TOK_FN, "expected 'fn'");
-
   Token name_tok = expect(TOK_SYM, "expected function name");
   function->name = name_tok.pos;
   function->pos = name_tok.pos;
@@ -309,7 +307,6 @@ parse_fn(AST *ast, Function *function) {
     Token name_tok = expect(TOK_SYM, "expected param name");
     param->name = name_tok.pos;
 
-    expect(TOK_COLON, "expected ':'");
     param->type = parse_type(ast);
     if (lexer_peek().t == TOK_COMMA) {
       lexer_next();

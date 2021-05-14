@@ -48,6 +48,8 @@ typedef struct {
 void vector_init(Vector *vec, size_t it_sz, MemPool *pool);
 void vector_init_size(Vector *vec, size_t it_sz, MemPool *pool, size_t items);
 void vector_push(Vector *vec, void *data);
+void vector_remove(Vector *vec, size_t idx);
+void vector_insert(Vector *vec, size_t idx, void *data);
 void *vector_idx(Vector *vec, size_t idx); /* returns NULL on out of bounds */
 
 /* grows vector and gives a pointer to the uninitialized data */

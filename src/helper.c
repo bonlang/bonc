@@ -167,6 +167,24 @@ vector_push(Vector *vec, void *data) {
   memcpy(vec->data + (vec->items++ * vec->it_sz), data, vec->it_sz);
 }
 
+void
+vector_remove(Vector *vec, size_t idx) {
+  memmove(vec->data + idx * vec->it_sz, vec->data + (idx + 1) * vec->it_sz,
+          (vec->items - idx) * vec->it_sz);
+  vec->items--;
+}
+
+void
+vector_insert(Vector *vec, size_t idx, void *data) {
+  if (vec->items + 1 > vec->alloc) {
+    vector_resize(vec);
+  }
+  memmove(vec->data + (idx + 1) * vec->it_sz, vec->data + idx * vec->it_sz,
+          (vec->items - idx) * vec->it_sz);
+  memcpy(vec->data + (idx * vec->it_sz), data, vec->it_sz);
+  vec->items++;
+}
+
 void *
 vector_idx(Vector *vec, size_t idx) {
   if (idx >= vec->items) {

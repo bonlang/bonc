@@ -107,8 +107,6 @@ pick_symbol_type() {
       return match(TOK_TRUE, "true");
     case 'r':
       return match(TOK_RETURN, "return");
-    case 'e':
-      return match(TOK_END, "end");
     case 'f':
       return match(TOK_FALSE, "false");
     case 'b':

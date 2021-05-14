@@ -56,7 +56,6 @@ enum {
   TOK_LET,
   TOK_MUT,
   TOK_RETURN,
-  TOK_END,
 
   /* misc. */
   TOK_EOF,

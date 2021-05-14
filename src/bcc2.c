@@ -72,10 +72,13 @@ main(int argc, char *argv[]) {
   parse_args(argc, argv);
 
   if (flags.help) {
-    printf("-h : prints help\n-v : prints version\n-ast : dumps ast to "
-           "stdout\n-ir : dumps ir to stdout\n-regs : dumps registers to "
-           "stdout\n-platform : list platforms\n-platform <platform> : selects "
-           "the platform to compile for\n");
+    printf("-h : prints help\n"
+           "-v : prints version\n"
+           "-ast : dumps ast to stdout\n"
+           "-ir : dumps ir to stdout\n"
+           "-regs : dumps registers to stdout\n"
+           "-platform : list platforms\n"
+           "-platform <platform> : selects the platform to compile for\n");
     exit(EXIT_SUCCESS);
   }
 

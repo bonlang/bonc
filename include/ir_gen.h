@@ -4,6 +4,6 @@
 #include "ast.h"
 #include "ssa.h"
 
-void translate_ast(AST *ast, SSA_Prog *prog, MemPool *pool);
+void translate_ast(AST *ast, SSA_Prog *prog);
 
 #endif

@@ -69,7 +69,7 @@ struct SSA_Fn {
 };
 
 typedef struct {
-  RegId next_id;
+  MemPool pool;
   Vector fns; /* SSA_Function */
 } SSA_Prog;
 

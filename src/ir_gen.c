@@ -75,9 +75,6 @@ inst_init(SSA_Inst *inst, int t, int sz, RegId result) {
 static RegId
 translate_expr(Expr *expr, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
                MemPool *pool) {
-  (void)scope;
-  (void)block;
-  (void)pool;
   switch (expr->t) {
     case EXPR_INT:
       {
@@ -192,8 +189,9 @@ translate_function(Function *fn, SSA_Fn *sem_fn, MemPool *pool) {
 }
 
 void
-translate_ast(AST *ast, SSA_Prog *prog, MemPool *pool) {
-  vector_init(&prog->fns, sizeof(SSA_Fn), pool);
+translate_ast(AST *ast, SSA_Prog *prog) {
+  mempool_init(&prog->pool);
+  vector_init(&prog->fns, sizeof(SSA_Fn), &prog->pool);
 
   for (size_t i = 0; i < ast->fns.items; i++) {
     Function *fn = vector_idx(&ast->fns, i);
@@ -202,6 +200,6 @@ translate_ast(AST *ast, SSA_Prog *prog, MemPool *pool) {
   }
   for (size_t i = 0; i < ast->fns.items; i++) {
     translate_function(vector_idx(&ast->fns, i), vector_idx(&prog->fns, i),
-                       pool);
+                       &prog->pool);
   }
 }

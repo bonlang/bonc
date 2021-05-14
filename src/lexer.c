@@ -13,6 +13,7 @@ struct {
   size_t end;
   size_t start;
 
+  int prev;
   Token peek;
   int peekf; /* 0 if no token available to peek */
 } lex;
@@ -62,12 +63,30 @@ peek_c() {
   return lex.buf[lex.end];
 }
 
-static void
+static inline int
+needs_newline() {
+  return lex.prev == TOK_INT || lex.prev == TOK_SYM || lex.prev == TOK_FALSE ||
+         lex.prev == TOK_TRUE || lex.prev == TOK_U8 || lex.prev == TOK_I8 ||
+         lex.prev == TOK_U16 || lex.prev == TOK_I16 || lex.prev == TOK_U32 ||
+         lex.prev == TOK_I32 || lex.prev == TOK_U64 || lex.prev == TOK_I64 ||
+         lex.prev == TOK_BOOL;
+}
+
+static int
 skip_whitespace() {
+  int c;
   while (!is_eof() && is_whitespace(peek_c())) {
-    next_c();
+    if ((c = peek_c()) == '\t' || c == ' ') {
+      next_c();
+    } else if (c == '\n' && needs_newline()) {
+      lex.start = lex.end;
+      return 1;
+    } else {
+      next_c();
+    }
   }
   lex.start = lex.end;
+  return 0;
 }
 
 static inline int
@@ -89,16 +108,7 @@ pick_symbol_type() {
     case 'r':
       return match(TOK_RETURN, "return");
     case 'f':
-      if (cur_len() < 2) {
-        return TOK_SYM;
-      }
-      switch (lex.buf[lex.start + 1]) {
-        case 'a':
-          return match(TOK_FALSE, "false");
-        case 'n':
-          return match(TOK_FN, "fn");
-      }
-      return TOK_SYM;
+      return match(TOK_FALSE, "false");
     case 'b':
       return match(TOK_BOOL, "bool");
     case 'm':
@@ -207,7 +217,10 @@ match_character(int c, int t1, int t2) {
 
 static Token
 lexer_fetch() {
-  skip_whitespace();
+
+  if (skip_whitespace()) {
+    return make_token(TOK_NEWLINE);
+  }
 
   if (is_eof())
     return make_token(TOK_EOF);
@@ -256,7 +269,7 @@ lexer_fetch() {
     case ']':
       return make_token(TOK_RBRACK);
     case ';':
-      return make_token(TOK_SEMICOLON);
+      return make_token(TOK_NEWLINE);
     case ':':
       return make_token(TOK_COLON);
     case ',':
@@ -273,7 +286,9 @@ lexer_next() {
     lex.peekf = 0;
     return lex.peek;
   }
-  return lexer_fetch();
+  Token ret = lexer_fetch();
+  lex.prev = ret.t;
+  return ret;
 }
 
 Token
@@ -282,6 +297,7 @@ lexer_peek() {
     return lex.peek;
   }
   Token ret = lexer_fetch();
+  lex.prev = ret.t;
   lex.peekf = 1;
   lex.peek = ret;
   return ret;

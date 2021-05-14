@@ -14,6 +14,7 @@
 #include "parser.h"
 #include "semantics.h"
 #include "ssa.h"
+#include "platforms.h"
 
 struct {
   int ast_dump;
@@ -21,12 +22,15 @@ struct {
   int reg_dump;
   int help;
   int version;
+  int list_platforms;
   const char *in_file;
+  Platform *platform;
 } flags;
 
 void
 parse_args(int argc, char *argv[]) {
   memset(&flags, 0, sizeof(flags));
+  flags.platform = &platform_x86_64_sysv;
   for (int i = 1; i < argc; i++) {
     if (argv[i][0] != '-') {
       if (flags.in_file) {
@@ -39,6 +43,26 @@ parse_args(int argc, char *argv[]) {
       flags.reg_dump |= strcmp(argv[i], "-regs") == 0;
       flags.help |= strcmp(argv[i], "-h") == 0;
       flags.version |= strcmp(argv[i], "-v") == 0;
+
+      if (strcmp(argv[i], "-platform") == 0) {
+        if (i + 1 >= argc) {
+          flags.list_platforms |= 1;
+        } else if (argv[i + 1][0] == '-') {
+          log_err_final("expected platform name after -platform");
+        } else {
+          flags.platform = NULL;
+          for (size_t j = 0; platforms[j] != NULL; j++) {
+            if (strcmp(platforms[j]->name, argv[i + 1]) == 0) {
+              flags.platform = platforms[j];
+              i++;
+              break;
+            }
+          }
+          if (flags.platform == NULL) {
+            log_err_final("unknown platform name '%s'", argv[i + 1]);
+          }
+        }
+      }
     }
   }
 }
@@ -47,23 +71,33 @@ int
 main(int argc, char *argv[]) {
   parse_args(argc, argv);
 
+  if (flags.help) {
+    printf("-h : prints help\n-v : prints version\n-ast : dumps ast to "
+           "stdout\n-ir : dumps ir to stdout\n-regs : dumps registers to "
+           "stdout\n-platform : list platforms\n-platform <platform> : selects "
+           "the platform to compile for\n");
+    exit(EXIT_SUCCESS);
+  }
+
+  if (flags.version) {
+    printf("bcc2 : v0.1\n");
+    exit(EXIT_SUCCESS);
+  }
+
+  if (flags.list_platforms) {
+    printf("available platforms:\n");
+    for (size_t i = 0; platforms[i] != NULL; i++) {
+      printf(" - %s\n", platforms[i]->name);
+    }
+    exit(EXIT_SUCCESS);
+  }
+
   if (!flags.in_file) {
     log_err_final("no input file specified");
   }
 
   if (!flags.ir_dump && flags.reg_dump) {
     log_err_final("cannot print registers without printing the IR");
-  }
-
-  if (flags.help) {
-    printf("-h : prints help\n-v : prints version\n-ast : dumps ast to "
-           "stdout\n-ir : dumps ir to stdout\n-regs : dumps registers to "
-           "stdout\n");
-    exit(EXIT_SUCCESS);
-  }
-  if (flags.version) {
-    printf("bcc2 : v0.1\n");
-    exit(EXIT_SUCCESS);
   }
 
   int in_fd = open(flags.in_file, O_RDONLY);

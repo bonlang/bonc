@@ -30,8 +30,8 @@ bblock_init(MemPool *pool) {
 }
 
 SSA_Inst *
-bblock_append(SSA_BBlock *block, MemPool *pool) {
-  return vector_alloc(&block->insts, pool);
+bblock_append(SSA_BBlock *block) {
+  return vector_alloc(&block->insts);
 }
 
 void

@@ -26,17 +26,17 @@ type_sz(int ast_type) {
 }
 
 static RegId
-new_reg(SSA_Fn *fn, int sz, MemPool *pool) {
-  SSA_Reg *reg = vector_alloc(&fn->regs, pool);
+new_reg(SSA_Fn *fn, int sz) {
+  SSA_Reg *reg = vector_alloc(&fn->regs);
   RegId ret = (RegId)fn->regs.items; /* starts at 1 */
   reg->sz = sz;
   return ret;
 }
 
 static RegId
-sym_table_reg(SSA_Fn *fn, ScopeEntry *entry, MemPool *pool) {
+sym_table_reg(SSA_Fn *fn, ScopeEntry *entry) {
   if (entry->inf.id == 0) {
-    return entry->inf.id = new_reg(fn, type_sz(entry->inf.type->t), pool);
+    return entry->inf.id = new_reg(fn, type_sz(entry->inf.type->t));
   } else {
     return entry->inf.id;
   }
@@ -81,15 +81,15 @@ translate_expr(Expr *expr, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
   switch (expr->t) {
     case EXPR_INT:
       {
-        SSA_Inst *inst = bblock_append(block, pool);
+        SSA_Inst *inst = bblock_append(block);
         inst_init(inst, INST_IMM, type_sz(expr->type->t),
-                  new_reg(fn, type_sz(expr->type->t), pool));
+                  new_reg(fn, type_sz(expr->type->t)));
         inst->data.imm = expr->data.intlit.val;
         return inst->result;
       }
     case EXPR_VAR:
       {
-        return sym_table_reg(fn, expr->data.var, pool);
+        return sym_table_reg(fn, expr->data.var);
       }
     case EXPR_BINOP:
       {
@@ -97,12 +97,12 @@ translate_expr(Expr *expr, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
             translate_expr(expr->data.binop.left, scope, block, fn, pool);
         RegId obj2 =
             translate_expr(expr->data.binop.right, scope, block, fn, pool);
-        SSA_Inst *inst = bblock_append(block, pool);
+        SSA_Inst *inst = bblock_append(block);
         inst->sz = type_sz(expr->type->t);
         inst->t = translate_binop(expr->type->t, expr->data.binop.op);
         inst->data.operands[0] = obj1;
         inst->data.operands[1] = obj2;
-        inst->result = new_reg(fn, type_sz(expr->type->t), pool);
+        inst->result = new_reg(fn, type_sz(expr->type->t));
         return inst->result;
       }
     case EXPR_FUNCALL:
@@ -112,11 +112,11 @@ translate_expr(Expr *expr, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
         for (size_t i = 0; i < expr->data.funcall.args.items; i++) {
           Expr *temp_expr = *((Expr **)vector_idx(&expr->data.funcall.args, i));
           RegId temp_id = translate_expr(temp_expr, scope, block, fn, pool);
-          vector_push(&passed_params, &temp_id, pool);
+          vector_push(&passed_params, &temp_id);
         }
-        SSA_Inst *inst = bblock_append(block, pool);
+        SSA_Inst *inst = bblock_append(block);
         inst_init(inst, INST_CALLFN, type_sz(expr->type->t),
-                  new_reg(fn, type_sz(expr->type->t), pool));
+                  new_reg(fn, type_sz(expr->type->t)));
         if (expr->data.funcall.fn->inf.fn == NULL) {
           log_internal_err("cannot call runtime selected functions", NULL);
         }
@@ -138,17 +138,17 @@ translate_stmt(Stmt *stmt, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
       if (stmt->data.let.value != NULL) {
         RegId obj =
             translate_expr(stmt->data.let.value, scope, block, fn, pool);
-        SSA_Inst *inst = bblock_append(block, pool);
+        SSA_Inst *inst = bblock_append(block);
 
         inst_init(inst, INST_COPY, type_sz(stmt->data.let.value->type->t),
-                  sym_table_reg(fn, stmt->data.let.var, pool));
+                  sym_table_reg(fn, stmt->data.let.var));
         inst->data.operands[0] = obj;
       }
       break;
     case STMT_EXPR:
       {
         RegId op = translate_expr(stmt->data.expr, scope, block, fn, pool);
-        SSA_Inst *inst = bblock_append(block, pool);
+        SSA_Inst *inst = bblock_append(block);
         inst_init(inst, INST_COPY, type_sz(stmt->data.expr->type->t), 0);
         inst->data.operands[0] = op;
         break;
@@ -159,7 +159,7 @@ translate_stmt(Stmt *stmt, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
         if (stmt->data.ret != NULL) {
           op = translate_expr(stmt->data.ret, scope, block, fn, pool);
         }
-        SSA_Inst *inst = bblock_append(block, pool);
+        SSA_Inst *inst = bblock_append(block);
         inst_init(inst, INST_RET, 0,
                   stmt->data.let.value == NULL
                       ? SZ_NONE
@@ -179,8 +179,8 @@ translate_function(Function *fn, SSA_Fn *sem_fn, MemPool *pool) {
   vector_init(&sem_fn->regs, sizeof(SSA_Reg), pool);
   for (size_t i = 0; i < fn->params.items; i++) {
     Param *param = vector_idx(&fn->params, i);
-    RegId temp = sym_table_reg(sem_fn, param->entry, pool);
-    vector_push(&sem_fn->params, &temp, pool);
+    RegId temp = sym_table_reg(sem_fn, param->entry);
+    vector_push(&sem_fn->params, &temp);
   }
 
   for (size_t i = 0; i < fn->body.stmts.items; i++) {
@@ -197,7 +197,7 @@ translate_ast(AST *ast, SSA_Prog *prog, MemPool *pool) {
 
   for (size_t i = 0; i < ast->fns.items; i++) {
     Function *fn = vector_idx(&ast->fns, i);
-    SSA_Fn *ssa_fn = vector_alloc(&prog->fns, pool);
+    SSA_Fn *ssa_fn = vector_alloc(&prog->fns);
     fn->entry->inf.fn = ssa_fn;
   }
   for (size_t i = 0; i < ast->fns.items; i++) {

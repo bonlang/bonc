@@ -62,7 +62,7 @@ parse_funcall(AST *ast, Token name_tok) {
   vector_init(&args, sizeof(Expr *), &ast->pool);
   while (lexer_peek().t != TOK_RPAREN) {
     Expr *temp = parse_expr(ast);
-    vector_push(&args, &temp, &ast->pool);
+    vector_push(&args, &temp);
     if (lexer_peek().t != TOK_COMMA) {
       break;
     }
@@ -274,20 +274,20 @@ parse_block(Block *block, AST *ast) {
   while (1) {
     switch (lexer_peek().t) {
       case TOK_LET:
-        parse_let(ast, vector_alloc(&block->stmts, &ast->pool), 0);
+        parse_let(ast, vector_alloc(&block->stmts), 0);
         break;
       case TOK_RETURN:
-        parse_return(ast, vector_alloc(&block->stmts, &ast->pool));
+        parse_return(ast, vector_alloc(&block->stmts));
         break;
       case TOK_MUT:
-        parse_let(ast, vector_alloc(&block->stmts, &ast->pool), 1);
+        parse_let(ast, vector_alloc(&block->stmts), 1);
         break;
       /* TODO: Replace this with '}' for proper blocks */
       case TOK_RCURLY:
         lexer_next();
         return;
       default:
-        parse_expr_stmt(ast, vector_alloc(&block->stmts, &ast->pool));
+        parse_expr_stmt(ast, vector_alloc(&block->stmts));
         break;
     }
   }
@@ -305,7 +305,7 @@ parse_fn(AST *ast, Function *function) {
   vector_init(&function->params, sizeof(Param), &ast->pool);
 
   while (lexer_peek().t != TOK_RPAREN) {
-    Param *param = vector_alloc(&function->params, &ast->pool);
+    Param *param = vector_alloc(&function->params);
     Token name_tok = expect(TOK_SYM, "expected param name");
     param->name = name_tok.pos;
 
@@ -333,7 +333,7 @@ parse_ast(const uint8_t *src) {
   ast_init(&ret, src);
 
   while (lexer_peek().t != TOK_EOF) {
-    parse_fn(&ret, vector_alloc(&ret.fns, &ret.pool));
+    parse_fn(&ret, vector_alloc(&ret.fns));
   }
 
   src_base = src;

@@ -29,7 +29,8 @@ enum {
   INST_CALLFN,
 };
 
-extern const int inst_arity_tbl[];
+/* Store the number of *register* arguments an instruction takes */
+extern const uint8_t inst_arity_tbl[];
 extern const uint8_t inst_returns_tbl[];
 extern const char *inst_name_tbl[];
 
@@ -75,7 +76,14 @@ typedef struct {
 
 SSA_BBlock *bblock_init(MemPool *pool);
 SSA_Inst *bblock_append(SSA_BBlock *block);
-void bblock_finish(SSA_BBlock *block, SSA_BBlock *next);
+
+void bblock_insert_inst(SSA_BBlock *block, size_t idx, SSA_Inst *inst);
+void bblock_remove_inst(SSA_BBlock *block, size_t idx);
+void bblock_replace_reg(SSA_BBlock *block, RegId find, RegId replace,
+                        size_t start, size_t end);
+
+RegId ssa_new_reg(SSA_Fn *fn, int sz);
+
 void ssa_prog_dump(FILE *file, SSA_Prog *prog, int reg_dump);
 
 #endif

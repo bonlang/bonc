@@ -2,8 +2,6 @@
 
 #include <stdlib.h>
 
-#define NEXT_REG(fn) (fn->cur_id++)
-
 static int
 type_sz(int ast_type) {
   switch (ast_type) {
@@ -26,17 +24,9 @@ type_sz(int ast_type) {
 }
 
 static RegId
-new_reg(SSA_Fn *fn, int sz) {
-  SSA_Reg *reg = vector_alloc(&fn->regs);
-  RegId ret = (RegId)fn->regs.items; /* starts at 1 */
-  reg->sz = sz;
-  return ret;
-}
-
-static RegId
 sym_table_reg(SSA_Fn *fn, ScopeEntry *entry) {
   if (entry->inf.id == 0) {
-    return entry->inf.id = new_reg(fn, type_sz(entry->inf.type->t));
+    return entry->inf.id = ssa_new_reg(fn, type_sz(entry->inf.type->t));
   } else {
     return entry->inf.id;
   }
@@ -80,7 +70,7 @@ translate_expr(Expr *expr, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
       {
         SSA_Inst *inst = bblock_append(block);
         inst_init(inst, INST_IMM, type_sz(expr->type->t),
-                  new_reg(fn, type_sz(expr->type->t)));
+                  ssa_new_reg(fn, type_sz(expr->type->t)));
         inst->data.imm = expr->data.intlit.val;
         return inst->result;
       }
@@ -99,7 +89,7 @@ translate_expr(Expr *expr, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
         inst->t = translate_binop(expr->type->t, expr->data.binop.op);
         inst->data.operands[0] = obj1;
         inst->data.operands[1] = obj2;
-        inst->result = new_reg(fn, type_sz(expr->type->t));
+        inst->result = ssa_new_reg(fn, type_sz(expr->type->t));
         return inst->result;
       }
     case EXPR_FUNCALL:
@@ -113,7 +103,7 @@ translate_expr(Expr *expr, Scope *scope, SSA_BBlock *block, SSA_Fn *fn,
         }
         SSA_Inst *inst = bblock_append(block);
         inst_init(inst, INST_CALLFN, type_sz(expr->type->t),
-                  new_reg(fn, type_sz(expr->type->t)));
+                  ssa_new_reg(fn, type_sz(expr->type->t)));
         if (expr->data.funcall.fn->inf.fn == NULL) {
           log_internal_err("cannot call runtime selected functions", NULL);
         }

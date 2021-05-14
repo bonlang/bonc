@@ -2,10 +2,10 @@
 
 #include <inttypes.h>
 
-const int inst_arity_tbl[] = {
-    [INST_ADD] = 2,  [INST_SUB] = 2,     [INST_IMUL] = 2, [INST_UMUL] = 2,
-    [INST_IDIV] = 2, [INST_UDIV] = 2,    [INST_COPY] = 1, [INST_RET] = 1,
-    [INST_IMM] = 1,  [INST_CALLFN] = -1,
+const uint8_t inst_arity_tbl[] = {
+    [INST_ADD] = 2,  [INST_SUB] = 2,    [INST_IMUL] = 2, [INST_UMUL] = 2,
+    [INST_IDIV] = 2, [INST_UDIV] = 2,   [INST_COPY] = 1, [INST_RET] = 1,
+    [INST_IMM] = 0,  [INST_CALLFN] = 0,
 };
 
 const uint8_t inst_returns_tbl[] = {
@@ -35,8 +35,35 @@ bblock_append(SSA_BBlock *block) {
 }
 
 void
-bblock_finalize(SSA_BBlock *block, SSA_BBlock *next) {
-  block->next = next;
+bblock_insert_inst(SSA_BBlock *block, size_t idx, SSA_Inst *inst) {
+  vector_insert(&block->insts, idx, inst);
+}
+
+void
+bblock_remove_inst(SSA_BBlock *block, size_t idx) {
+  vector_remove(&block->insts, idx);
+}
+
+void
+bblock_replace_reg(SSA_BBlock *block, RegId find, RegId replacement,
+                   size_t start, size_t end) {
+  for (size_t i = start; i < end; i++) {
+    SSA_Inst *inst = vector_idx(&block->insts, i);
+
+    for (uint8_t op = 0; op < inst_arity_tbl[inst->t]; op++) {
+      if (inst->data.operands[i] == find) {
+        inst->data.operands[i] = replacement;
+      }
+    }
+  }
+}
+
+RegId
+ssa_new_reg(SSA_Fn *fn, int sz) {
+  SSA_Reg *reg = vector_alloc(&fn->regs);
+  RegId ret = (RegId)fn->regs.items; /* starts at 1 */
+  reg->sz = sz;
+  return ret;
 }
 
 static const char *sz_name_tbl[] = {"", "8", "16", "32", "64"};

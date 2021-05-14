@@ -1,6 +1,6 @@
 # Beans Language
 
-A beans program is made up of a series of functions, the order of these functions does not matter and they can be references before being called.
+A beans program is made up of a series of functions, the order of these functions does not matter and they can be referenced before being called.
 
 ## Basics
 
@@ -9,7 +9,7 @@ A beans program is made up of a series of functions, the order of these function
 ## Types
 
 There are several builtin types. 
-* void 		 - represents a lack of any value
+* void 		 - represents a lack of a value
 * i8/i16/i32/i64 - signed integer types with the specified number of bits
 * u8/u16/u32/u64 - unsigned integer types with the specified number of bits
 * bool 		 - either ``true`` or ``false``

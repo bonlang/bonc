@@ -32,7 +32,6 @@ enum {
   TOK_RBRACK,
 
   /* punctuation */
-  TOK_SEMICOLON,
   TOK_COLON,
   TOK_COMMA,
 
@@ -56,11 +55,11 @@ enum {
   /* keywords */
   TOK_LET,
   TOK_MUT,
-  TOK_FN,
   TOK_RETURN,
 
   /* misc. */
   TOK_EOF,
+  TOK_NEWLINE,
 };
 
 enum {

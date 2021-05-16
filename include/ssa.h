@@ -79,6 +79,9 @@ SSA_Inst *bblock_append(SSA_BBlock *block);
 
 void bblock_insert_inst(SSA_BBlock *block, size_t idx, SSA_Inst *inst);
 void bblock_remove_inst(SSA_BBlock *block, size_t idx);
+/* Replaces all of the operands that contain a specific register in a range of
+ * instructions. This *does not* replace any results that contain the register
+ */
 void bblock_replace_reg(SSA_BBlock *block, RegId find, RegId replace,
                         size_t start, size_t end);
 

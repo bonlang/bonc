@@ -38,6 +38,7 @@ void *mempool_alloc(MemPool *pool, size_t amount);
 void mempool_deinit(MemPool *pool);
 
 typedef struct {
+  MemPool *pool;
   uint8_t *data;
   size_t items; /* number of items being used */
   size_t alloc; /* space allocated, in items */
@@ -46,10 +47,12 @@ typedef struct {
 
 void vector_init(Vector *vec, size_t it_sz, MemPool *pool);
 void vector_init_size(Vector *vec, size_t it_sz, MemPool *pool, size_t items);
-void vector_push(Vector *vec, void *data, MemPool *pool);
+void vector_push(Vector *vec, void *data);
+void vector_remove(Vector *vec, size_t idx);
+void vector_insert(Vector *vec, size_t idx, void *data);
 void *vector_idx(Vector *vec, size_t idx); /* returns NULL on out of bounds */
 
 /* grows vector and gives a pointer to the uninitialized data */
-void *vector_alloc(Vector *vec, MemPool *pool);
+void *vector_alloc(Vector *vec);
 
 #endif

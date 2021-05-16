@@ -97,7 +97,7 @@ main(int argc, char *argv[]) {
   }
 
   SSA_Prog ssa_prog;
-  translate_ast(&ast, &ssa_prog, &ast.pool);
+  translate_ast(&ast, &ssa_prog);
 
   if (flags.ir_dump) {
     printf("IR_DUMP:\n");

@@ -45,9 +45,9 @@ parse_args(int argc, char *argv[]) {
       flags.version |= strcmp(argv[i], "-v") == 0;
 
       if (strcmp(argv[i], "-platform") == 0) {
-        if (i + 1 >= argc) {
+        if (argc == 2) {
           flags.list_platforms |= 1;
-        } else if (argv[i + 1][0] == '-') {
+        } else if (i + 1 >= argc || argv[i + 1][0] == '-') {
           log_err_final("expected platform name after -platform");
         } else {
           flags.platform = NULL;

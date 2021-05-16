@@ -12,6 +12,10 @@ src = [
   'src/ssa.c',
   'src/ir_gen.c',
   'src/bcc2.c',
+
+  'src/platforms/platforms.c',
+  'src/platforms/x86_64/architecture.c',
+  'src/platforms/riscv/architecture.c',
 ]
 
 inc = include_directories('include')

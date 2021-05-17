@@ -17,7 +17,7 @@ make_expr(AST *ast, int t, SourcePosition pos) {
 }
 
 static Token
-expect(int t, const char *err_msg) {
+expect(TokKind t, const char *err_msg) {
   Token ret = lexer_next();
   if (ret.t != t) {
     log_source_err(err_msg, src_base, ret.pos);
@@ -123,9 +123,10 @@ parse_binop() {
       return BINOP_GREQ;
     case TOK_LEEQ:
       return BINOP_LEEQ;
+    default:
+      log_internal_err("impossible binary op token %d", tok.t);
+      exit(EXIT_FAILURE);
   }
-  log_internal_err("impossible binary op token %d", tok.t);
-  exit(EXIT_FAILURE);
 }
 
 static Expr *
@@ -209,9 +210,10 @@ parse_type(AST *ast) {
       return &I64_const;
     case TOK_BOOL:
       return &bool_const;
+    default:
+      log_source_err("expected type name", src_base, type_tok.pos);
+      return NULL;
   }
-  log_source_err("expected type name", src_base, type_tok.pos);
-  return NULL;
 }
 
 static void

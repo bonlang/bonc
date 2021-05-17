@@ -6,7 +6,7 @@
 
 #include "helper.h"
 
-enum {
+typedef enum {
   /* binary ops */
   TOK_ADD,
   TOK_SUB,
@@ -60,9 +60,9 @@ enum {
   /* misc. */
   TOK_EOF,
   TOK_NEWLINE,
-};
+} TokKind;
 
-enum {
+typedef enum {
   INTLIT_I8,
   INTLIT_U8,
   INTLIT_I16,
@@ -72,11 +72,11 @@ enum {
   INTLIT_I64,
   INTLIT_U64,
   INTLIT_I64_NONE,
-};
+} IntlitKind;
 
 typedef struct {
-  int t;
-  int intlit_type;
+  TokKind t;
+  IntlitKind intlit_type;
   SourcePosition pos;
 } Token;
 

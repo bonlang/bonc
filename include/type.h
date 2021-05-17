@@ -1,7 +1,7 @@
 #ifndef TYPE_H
 #define TYPE_H
 
-enum {
+typedef enum {
   /* statically allocated types */
   TYPE_U8,
   TYPE_U16,
@@ -15,10 +15,10 @@ enum {
   TYPE_VOID,
   /* dynamically allocated types */
   TYPE_FN,
-};
+} TypeKind;
 
 typedef struct Type {
-  int t;
+  TypeKind t;
   union {
     struct {
       struct Type *ret;

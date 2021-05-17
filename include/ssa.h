@@ -8,15 +8,15 @@
 
 typedef uint64_t RegId;
 
-enum {
+typedef enum {
   SZ_NONE,
   SZ_8,
   SZ_16,
   SZ_32,
   SZ_64,
-};
+} SizeKind;
 
-enum {
+typedef enum {
   INST_ADD,
   INST_SUB,
   INST_IMUL,
@@ -27,7 +27,7 @@ enum {
   INST_RET,
   INST_IMM,
   INST_CALLFN,
-};
+} InstKind;
 
 /* Store the number of *register* arguments an instruction takes */
 extern const uint8_t inst_arity_tbl[];
@@ -37,8 +37,8 @@ extern const char *inst_name_tbl[];
 typedef struct SSA_Fn SSA_Fn;
 
 typedef struct {
-  int t;
-  int sz;
+  InstKind t;
+  SizeKind sz;
   RegId result;
 
   union {
@@ -58,7 +58,7 @@ typedef struct BBlock {
 } SSA_BBlock;
 
 typedef struct {
-  int sz;
+  SizeKind sz;
   /* more stuff */
 } SSA_Reg;
 

@@ -6,10 +6,11 @@
 #include <stdio.h>
 
 #include "helper.h"
+#include "lexer.h"
 #include "symtable.h"
 #include "type.h"
 
-enum {
+typedef enum {
   BINOP_ADD,
   BINOP_SUB,
   BINOP_MUL,
@@ -23,17 +24,17 @@ enum {
 
   /* only used by coerce_type */
   BINOP_ASSIGN,
-};
+} BinopKind;
 
-enum {
+typedef enum {
   EXPR_INT,
   EXPR_VAR,
   EXPR_BINOP,
   EXPR_FUNCALL,
-};
+} ExprKind;
 
 typedef struct Expr {
-  int t;
+  ExprKind t;
   SourcePosition pos;
 
   Type *type;
@@ -41,12 +42,12 @@ typedef struct Expr {
     struct {
       struct Expr *left;
       struct Expr *right;
-      int op;
+      BinopKind op;
     } binop;
     ScopeEntry *var;
     struct {
       uint64_t val;
-      int type;
+      IntlitKind type;
     } intlit;
     struct {
       SourcePosition name;
@@ -57,14 +58,14 @@ typedef struct Expr {
 
 } Expr;
 
-enum {
+typedef enum {
   STMT_LET,
   STMT_RETURN,
   STMT_EXPR,
-};
+} StmtKind;
 
 typedef struct {
-  int t;
+  StmtKind t;
   SourcePosition pos;
 
   union {

@@ -37,6 +37,7 @@ typedef enum {
 extern const uint8_t inst_arity_tbl[];
 extern const uint8_t inst_returns_tbl[];
 extern const char *inst_name_tbl[];
+extern const uint8_t sz_byte_tbl[];
 
 typedef struct SSA_Fn SSA_Fn;
 

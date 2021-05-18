@@ -4,7 +4,7 @@
 
 const uint8_t inst_arity_tbl[] = {
     [INST_ADD] = 2,    [INST_SUB] = 2,  [INST_IMUL] = 2, [INST_UMUL] = 2,
-    [INST_IDIV] = 2,   [INST_UDIV] = 2, [INST_COPY] = 1, [INST_ALLOCA] = 1,
+    [INST_IDIV] = 2,   [INST_UDIV] = 2, [INST_COPY] = 1, [INST_ALLOCA] = 0,
     [INST_STORE] = 2,  [INST_LOAD] = 1, [INST_RET] = 1,  [INST_IMM] = 0,
     [INST_CALLFN] = 0,
 };
@@ -23,6 +23,8 @@ const char *inst_name_tbl[] = {
     [INST_LOAD] = "load",     [INST_RET] = "ret",       [INST_IMM] = "imm",
     [INST_CALLFN] = "callfn",
 };
+
+const uint8_t sz_byte_tbl[] = {0, 1, 2, 4, 8};
 
 SSA_BBlock *
 bblock_init(MemPool *pool) {
@@ -83,6 +85,9 @@ inst_dump(FILE *file, SSA_Inst *inst) {
   if (inst->t == INST_IMM) {
     dump_nullable_reg(file, inst->result, inst->sz);
     fprintf(file, "$%" PRIu64, inst->data.imm);
+  } else if (inst->t == INST_ALLOCA) {
+    dump_nullable_reg(file, inst->result, inst->sz);
+    fprintf(file, "alloca $%" PRIu64, inst->data.imm);
   } else if (inst->t == INST_CALLFN) {
     dump_nullable_reg(file, inst->result, inst->sz);
     fprintf(file, "callfn %.*s(", (int)inst->data.callfn.fn->name.sz,

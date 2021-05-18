@@ -29,10 +29,6 @@
  *    - Handle register immediate operands
  *  - Handle rematerialization
  *  - Handle parameters
- *  - Export functions from irgen related to creating new nodes/registers
- *  - Supply operands to alloca properly, we can't do this at the moment since
- *    it is a pain to create a new source position, and it would be more
- *    efficient to just have the SSA store literals for immediates
  * Later when control flow is implemented we will need the following:
  *  - Global next use algorithm
  *  - Avoid spilling/reloading in loops
@@ -260,9 +256,11 @@ spills_allocate(Spiller *s, SSA_BBlock *block) {
     SpilledReg *sr = vector_idx(&s->spilled_regs, i);
 
     SSA_Reg *target_reginfo = vector_idx(&s->fn->regs, sr->reg);
-    sr->address = ssa_new_reg(s->fn, target_reginfo->sz);
-    SSA_Inst alloca = {
-        .t = INST_ALLOCA, .sz = s->platform->word_size, .result = sr->address};
+    sr->address = ssa_new_reg(s->fn, s->platform->word_size);
+    SSA_Inst alloca = {.t = INST_ALLOCA,
+                       .sz = s->platform->word_size,
+                       .result = sr->address,
+                       .data.imm = sz_byte_tbl[target_reginfo->sz]};
     vector_insert(&block->insts, 0, &alloca);
   }
 }

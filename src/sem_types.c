@@ -133,7 +133,7 @@ build_fn_type(AST *ast, Function *fn) {
   vector_init(&fn_type->data.fn.args, sizeof(Type *), &ast->pool);
   for (size_t i = 0; i < fn->params.items; i++) {
     Param *param = vector_idx(&fn->params, i);
-    vector_push(&fn_type->data.fn.args, &param->type, &ast->pool);
+    vector_push(&fn_type->data.fn.args, &param->type);
   }
 
   return fn_type;

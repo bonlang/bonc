@@ -70,7 +70,8 @@ needs_newline() {
          lex.prev == TOK_TRUE || lex.prev == TOK_U8 || lex.prev == TOK_I8 ||
          lex.prev == TOK_U16 || lex.prev == TOK_I16 || lex.prev == TOK_U32 ||
          lex.prev == TOK_I32 || lex.prev == TOK_U64 || lex.prev == TOK_I64 ||
-         lex.prev == TOK_BOOL;
+         lex.prev == TOK_BOOL || lex.prev == TOK_LPAREN ||
+         lex.prev == TOK_RPAREN;
 }
 
 static int

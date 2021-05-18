@@ -89,6 +89,16 @@ expr_dump(FILE *file, Expr *expr, int indent) {
       expr_dump(file, expr->data.binop.left, indent + 1);
       expr_dump(file, expr->data.binop.right, indent + 1);
       break;
+    case EXPR_FUNCALL:
+      {
+        fprintf(file, "Expr_Funcall: %.*s\n", (int)expr->data.funcall.name.sz,
+                (char *)expr->data.funcall.name.start);
+        for (size_t i = 0; i < expr->data.funcall.args.items; i++) {
+          Expr *temp_expr = *((Expr **)vector_idx(&expr->data.funcall.args, i));
+          expr_dump(file, temp_expr, indent + 1);
+        }
+        break;
+      }
   }
 }
 

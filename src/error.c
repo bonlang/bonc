@@ -26,7 +26,8 @@ errors_output(FILE *file) {
     (void)diag;
     diag_output(diag, file);
   }
-  fprintf(file, "%ld errors found. Aborting\n", errs.items);
+  fprintf(file, "%ld error%s found. Aborting.\n", errs.items,
+          errs.items == 1 ? "" : "s");
   exit(EXIT_FAILURE);
 }
 

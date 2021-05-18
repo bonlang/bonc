@@ -276,10 +276,10 @@ lexer_fetch() {
       return make_token(TOK_COLON);
     case ',':
       return make_token(TOK_COMMA);
+    default:
+      log_unexpected_char(make_pos(lex.buf + lex.start, cur_len()), c);
+      return lexer_fetch();
   }
-  log_unexpected_char(make_pos(lex.buf + lex.start, cur_len()), c);
-  log_source_err("unexpected char '%c'", lex.buf,
-                 make_pos(lex.buf + lex.start, cur_len()), c);
   return make_token(TOK_EOF); /* unreachable */
 }
 

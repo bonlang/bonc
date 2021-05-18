@@ -41,3 +41,4 @@ extern Platform platform_x86_64_sysv;
 extern Platform platform_riscv_64;
 
 #endif
+

@@ -5,3 +5,4 @@ Platform *platforms[] = {
     &platform_riscv_64,
     NULL,
 };
+

@@ -43,3 +43,4 @@ Platform platform_riscv_64 = {
                  {.name = "t5", .num = 30},  {.name = "t6", .num = 31},
              }},
     }};
+

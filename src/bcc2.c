@@ -128,6 +128,9 @@ main(int argc, char *argv[]) {
   lexer_init(in_file, in_size);
 
   AST ast = parse_ast(in_file);
+
+  errors_output(stdout);
+
   resolve_names(&ast);
   resolve_types(&ast);
   check_returns(&ast);

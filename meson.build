@@ -16,9 +16,17 @@ src = [
 
 inc = include_directories('include')
 
+diag_gen = find_program('scripts/gen_diags.py')
+
+diag_h = custom_target(
+  'diags.h',
+  output : 'diags.h',
+  input : 'scripts/diag_table.txt',
+  command : [diag_gen, '@INPUT@', '@OUTPUT@'])
+
 bcc2 = executable(
   'bcc2',
-  src,
+  [src, diag_h],
   c_args : ['-Wextra', '-Werror', '-g', '-std=c99', '-pedantic'],
   include_directories : [inc]
 )

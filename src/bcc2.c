@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "error.h"
 #include "helper.h"
 #include "ir_gen.h"
 #include "lexer.h"
@@ -82,6 +83,10 @@ main(int argc, char *argv[]) {
   if (in_file == MAP_FAILED) {
     log_err_final("unable to get contents of '%s'", flags.in_file);
   }
+
+  MemPool pool;
+  mempool_init(&pool);
+  errors_init(&pool, in_file);
 
   lexer_init(in_file, in_size);
 

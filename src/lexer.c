@@ -4,6 +4,7 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "error.h"
 #include "helper.h"
 
 struct {
@@ -275,6 +276,7 @@ lexer_fetch() {
     case ',':
       return make_token(TOK_COMMA);
   }
+  log_unexpected_char(make_pos(lex.buf + lex.start, cur_len()), c);
   log_source_err("unexpected char '%c'", lex.buf,
                  make_pos(lex.buf + lex.start, cur_len()), c);
   return make_token(TOK_EOF); /* unreachable */

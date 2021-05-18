@@ -2,6 +2,7 @@ project('bcc2', 'c')
 
 src = [
   'src/helper.c',
+  'src/error.c',
   'src/symtable.c',
   'src/ast.c',
   'src/lexer.c',
@@ -22,11 +23,17 @@ diag_h = custom_target(
   'diags.h',
   output : 'diags.h',
   input : 'scripts/diag_table.txt',
-  command : [diag_gen, '@INPUT@', '@OUTPUT@'])
+  command : [diag_gen, 'h', '@INPUT@', '@OUTPUT@'])
+
+diag_txt = custom_target(
+  'diags.txt',
+  output : 'diags.txt',
+  input : 'scripts/diag_table.txt',
+  command : [diag_gen, 'c', '@INPUT@', '@OUTPUT@'])
 
 bcc2 = executable(
   'bcc2',
-  [src, diag_h],
+  [src, diag_h, diag_txt],
   c_args : ['-Wextra', '-Werror', '-g', '-std=c99', '-pedantic'],
-  include_directories : [inc]
+  include_directories : [inc],
 )

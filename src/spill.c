@@ -265,10 +265,7 @@ spills_allocate(Spiller *s, SSA_BBlock *block) {
     SpilledReg *sr = vector_idx(&s->spilled_regs, i);
 
     SSA_Reg *target_reginfo = vector_idx(&s->fn->regs, sr->reg);
-    SSA_Reg *alloca_reginfo = vector_alloc(&s->fn->regs);
-    alloca_reginfo->sz = target_reginfo->sz;
-    sr->address = s->fn->regs.items;
-
+    sr->address = ssa_new_reg(s->fn, target_reginfo->sz);
     SSA_Inst alloca = {.t = INST_ALLOCA, .sz = SZ_64, .result = sr->address};
     vector_insert(&block->insts, 0, &alloca);
   }
@@ -282,13 +279,11 @@ spills_insert_loads(Spiller *s, SSA_BBlock *block) {
     SSA_Inst *target_inst = vector_idx(&block->insts, reload->inst + offset);
     SSA_Inst sr_inst = {.sz = target_inst->sz, .result = 0};
 
-    SSA_Reg *reginfo = vector_alloc(&s->fn->regs);
-    reginfo->sz = target_inst->sz;
-    sr_inst.result = s->fn->regs.items;
+    sr_inst.result = ssa_new_reg(s->fn, target_inst->sz);
     sr_inst.t = INST_LOAD;
     sr_inst.data.operands[0] = reload->reg->address;
 
-    vector_insert(&block->insts, reload->inst + offset, &sr_inst);
+    bblock_insert_inst(block, reload->inst + offset, &sr_inst);
     offset++;
 
     /* Find the next load for this register */
@@ -300,17 +295,9 @@ spills_insert_loads(Spiller *s, SSA_BBlock *block) {
       }
     }
 
+
     /* Patch future uses of the old register up to the next reload */
-    for (size_t j = reload->inst + offset; j < next_load; j++) {
-      SSA_Inst *inst = vector_idx(&block->insts, j);
-      if (inst->t != INST_IMM) {
-        for (uint8_t i = 0; i < inst_arity_tbl[inst->t]; i++) {
-          if (inst->data.operands[i] == reload->reg->reg) {
-            inst->data.operands[i] = sr_inst.result;
-          }
-        }
-      }
-    }
+    bblock_replace_reg(block, reload->reg->reg, sr_inst.result, reload->inst + offset, next_load);
   }
 }
 
@@ -325,7 +312,7 @@ spills_insert_stores(Spiller *s, SSA_BBlock *block) {
         SSA_Inst store = {.t = INST_STORE,
                           .sz = alloca_reginfo->sz,
                           .data.operands = {sr->address, sr->reg}};
-        vector_insert(&block->insts, j + 1, &store);
+        bblock_insert_inst(block, j + 1, &store);
         break;
       }
     }

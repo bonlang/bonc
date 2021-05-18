@@ -1,12 +1,12 @@
 #include "platforms.h"
 
 Platform platform_x86_64_sysv = {.name = "x86_64-sysv",
-                                 .word_size = 8,
+                                 .word_size = SZ_64,
 
                                  .num_register_classes = 2,
                                  .register_classes = (RegisterClass[]){
                                      {.reg_class = PLATFORM_REG_GENERAL_PURPOSE,
-                                      .num_registers = 16,
+                                      .num_registers = 14,
                                       .registers =
                                           (PlatformRegister[]){
                                               {.name = "rax", .num = 0},

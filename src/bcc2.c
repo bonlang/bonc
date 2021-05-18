@@ -142,7 +142,7 @@ main(int argc, char *argv[]) {
     ssa_prog_dump(stdout, &ssa_prog, flags.reg_dump);
   }
 
-  spill_prog(&ssa_prog);
+  spill_prog(&ssa_prog, flags.platform);
 
   if (flags.ir_dump) {
     printf("IR_DUMP post-spill: \n");

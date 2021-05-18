@@ -22,11 +22,9 @@
  * register-memory operands, though this depends on the implementation of the
  * register allocator and coalescer.
  *
- *
  * TODO:
  *  - Use architecture-specific info
  *    - Multiple register classes
- *    - Number of registers available
  *    - Additional register pressure induced by register constraints
  *    - Handle register immediate operands
  *  - Handle rematerialization
@@ -35,17 +33,10 @@
  *  - Supply operands to alloca properly, we can't do this at the moment since
  *    it is a pain to create a new source position, and it would be more
  *    efficient to just have the SSA store literals for immediates
- *  - Get alloca size from the architecture description
  * Later when control flow is implemented we will need the following:
  *  - Global next use algorithm
  *  - Avoid spilling/reloading in loops
- *
- * BUG: SSA nodes are currently allocated with the spiller mempool, they need
- *      to be allocated with the mempool SSA was original allocated with since
- *      the SSA outlives the spiller mempool
  */
-
-#define MAX_REG 3
 
 #define DIST_UNUSED SIZE_MAX
 typedef struct LiveReg {
@@ -67,6 +58,9 @@ typedef struct Reload {
 
 typedef struct Spiller {
   MemPool pool;
+
+  Platform *platform;
+  RegisterClass *regclass;
 
   /**
    * These sets represent the mapping of virtual registers to physical
@@ -97,10 +91,10 @@ set_find(Vector *set, RegId reg) {
 }
 
 static void
-set_insert(Vector *set, RegId reg) {
+set_insert(Spiller *s, Vector *set, RegId reg) {
   if (set_find(set, reg) != NULL)
     return;
-  if (set->items == MAX_REG)
+  if (set->items == s->regclass->num_registers)
     log_internal_err("inserting reg %%%zu into working set would cause the"
                      " length to exceeed the number of physical registers",
                      reg);
@@ -203,8 +197,9 @@ distance_compare(const void *a, const void *b) {
 static void
 combine_worksets(Spiller *s, SSA_BBlock *block, InstId inst_id) {
   /* Make enough space in set_working to concatenate set_new */
-  if (s->set_working.items + s->set_new.items > MAX_REG) {
-    size_t spills = s->set_working.items + s->set_new.items - MAX_REG;
+  if (s->set_working.items + s->set_new.items > s->regclass->num_registers) {
+    size_t spills =
+        s->set_working.items + s->set_new.items - s->regclass->num_registers;
 
     for (size_t i = 0; i < s->set_working.items; i++) {
       calculate_next_use(vector_idx(&s->set_working, i), block, inst_id);
@@ -226,7 +221,7 @@ combine_worksets(Spiller *s, SSA_BBlock *block, InstId inst_id) {
 
   for (size_t i = 0; i < s->set_new.items; i++) {
     LiveReg *use = vector_idx(&s->set_new, i);
-    set_insert(&s->set_working, use->reg);
+    set_insert(s, &s->set_working, use->reg);
   }
 }
 
@@ -244,7 +239,7 @@ spill_bblock(Spiller *s, SSA_BBlock *block) {
     s->set_new.items = 0;
     if (inst->t != INST_IMM) {
       for (uint8_t i = 0; i < inst_arity_tbl[inst->t]; i++) {
-        set_insert(&s->set_new, inst->data.operands[i]);
+        set_insert(s, &s->set_new, inst->data.operands[i]);
       }
       ensure_loaded(s, i);
       combine_worksets(s, block, i);
@@ -253,7 +248,7 @@ spill_bblock(Spiller *s, SSA_BBlock *block) {
     /* Handle outputs of instruction */
     s->set_new.items = 0;
     if (inst_returns_tbl[inst->t]) {
-      set_insert(&s->set_new, inst->result);
+      set_insert(s, &s->set_new, inst->result);
       combine_worksets(s, block, i);
     }
   }
@@ -266,7 +261,8 @@ spills_allocate(Spiller *s, SSA_BBlock *block) {
 
     SSA_Reg *target_reginfo = vector_idx(&s->fn->regs, sr->reg);
     sr->address = ssa_new_reg(s->fn, target_reginfo->sz);
-    SSA_Inst alloca = {.t = INST_ALLOCA, .sz = SZ_64, .result = sr->address};
+    SSA_Inst alloca = {
+        .t = INST_ALLOCA, .sz = s->platform->word_size, .result = sr->address};
     vector_insert(&block->insts, 0, &alloca);
   }
 }
@@ -295,9 +291,9 @@ spills_insert_loads(Spiller *s, SSA_BBlock *block) {
       }
     }
 
-
     /* Patch future uses of the old register up to the next reload */
-    bblock_replace_reg(block, reload->reg->reg, sr_inst.result, reload->inst + offset, next_load);
+    bblock_replace_reg(block, reload->reg->reg, sr_inst.result,
+                       reload->inst + offset, next_load);
   }
 }
 
@@ -320,8 +316,25 @@ spills_insert_stores(Spiller *s, SSA_BBlock *block) {
 }
 
 void
-spill_prog(SSA_Prog *prog) {
+spill_prog(SSA_Prog *prog, Platform *platform) {
   Spiller spiller;
+  spiller.platform = platform;
+
+  spiller.regclass = NULL;
+  for (size_t i = 0; i < platform->num_register_classes; i++) {
+    if (platform->register_classes[i].reg_class ==
+        PLATFORM_REG_GENERAL_PURPOSE) {
+      spiller.regclass = &platform->register_classes[i];
+      break;
+    }
+  }
+
+  if (spiller.regclass == NULL) {
+    log_internal_err(
+        "could not find general purpose register class in platform '%s'",
+        platform->name);
+  }
+
   mempool_init(&spiller.pool);
   vector_init(&spiller.set_working, sizeof(LiveReg), &spiller.pool);
   vector_init(&spiller.set_new, sizeof(LiveReg), &spiller.pool);

@@ -2,7 +2,7 @@
 
 Platform platform_riscv_64 = {
     .name = "RV64",
-    .word_size = 8,
+    .word_size = SZ_64,
 
     .num_register_classes = 2,
     .register_classes = (RegisterClass[]){

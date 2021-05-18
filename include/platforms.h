@@ -4,6 +4,8 @@
 #include <stdint.h>
 #include <stddef.h>
 
+#include "ssa.h"
+
 typedef struct PlatformRegister {
   const char *name;
   /* Global register number */
@@ -30,8 +32,7 @@ typedef struct Platform {
   RegisterClass *register_classes;
   size_t num_register_classes;
 
-  /* Word size in bytes */
-  uint8_t word_size;
+  SizeKind word_size;
 } Platform;
 
 /* Null terminated array of available platforms */

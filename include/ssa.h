@@ -54,6 +54,8 @@ typedef struct {
     } callfn;
     uint64_t imm;
   } data;
+  /* Used to associate pass local data with an instruction */
+  void *local;
 } SSA_Inst;
 
 typedef struct BBlock {
@@ -64,7 +66,6 @@ typedef struct BBlock {
 
 typedef struct {
   SizeKind sz;
-  /* more stuff */
 } SSA_Reg;
 
 struct SSA_Fn {
@@ -91,6 +92,9 @@ void bblock_replace_reg(SSA_BBlock *block, RegId find, RegId replace,
                         size_t start, size_t end);
 
 RegId ssa_new_reg(SSA_Fn *fn, int sz);
+
+/* Resets the pointers to pass-local instruction data to NULL */
+void ssa_clear_local(SSA_Prog *prog);
 
 void ssa_prog_dump(FILE *file, SSA_Prog *prog, int reg_dump);
 

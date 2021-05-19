@@ -71,6 +71,16 @@ ssa_new_reg(SSA_Fn *fn, int sz) {
   return ret;
 }
 
+void ssa_clear_local(SSA_Prog *prog) {
+  for (size_t i = 0; i < prog->fns.items; i++) {
+    SSA_Fn *fn = vector_idx(&prog->fns, i);
+    for (size_t j = 0; j < fn->entry->insts.items; j++) {
+      SSA_Inst *inst = vector_idx(&fn->entry->insts, j);
+      inst->local = NULL;
+    }
+  }
+}
+
 static const char *sz_name_tbl[] = {"", "8", "16", "32", "64"};
 
 static void

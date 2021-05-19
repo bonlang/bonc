@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <sys/mman.h>
+#include <limits.h>
 
 #define RED "\033[0;31m"
 #define BLUE "\033[0;34m"
@@ -199,4 +200,16 @@ vector_alloc(Vector *vec) {
     vector_resize(vec);
   }
   return vec->data + (vec->items++ * vec->it_sz);
+}
+
+void bitset_clear(char *bitset, size_t len) {
+  memset(bitset, 0, len);
+}
+
+void bitset_set(char *bitset, size_t idx) {
+  bitset[idx / CHAR_BIT] |= (1 << (idx & CHAR_BIT));
+}
+
+bool bitset_get(char *bitset, size_t idx) {
+  return bitset[idx / CHAR_BIT] & (1 << (idx & CHAR_BIT));
 }

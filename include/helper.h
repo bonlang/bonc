@@ -3,6 +3,7 @@
 
 #include <stddef.h>
 #include <stdint.h>
+#include <stdbool.h>
 
 typedef struct {
   const uint8_t *start;
@@ -54,5 +55,9 @@ void *vector_idx(Vector *vec, size_t idx); /* returns NULL on out of bounds */
 
 /* grows vector and gives a pointer to the uninitialized data */
 void *vector_alloc(Vector *vec);
+
+void bitset_clear(char *bitset, size_t len);
+void bitset_set(char *bitset, size_t idx);
+bool bitset_get(char *bitset, size_t idx);
 
 #endif

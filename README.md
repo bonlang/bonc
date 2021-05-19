@@ -1,10 +1,16 @@
-# BCC2 
+# bonc
 
-Take two on compiler for beans.
+A compiler for the Bon programming language.
+
+## About 
+
+### Note: This project is extremely WIP, like no executables being produced WIP
+
+Bon is a work in progress statically typed, compiled programming language with (WIP) backends for x86 and RISC-V.
 
 ## Building
 
-All that is needed is ``meson`` and ``ninja``.
+The Bon compiler uses ``meson`` for its build system, so the build tool ``ninja`` is required as well.
 
 ``mkdir build``
 
@@ -16,12 +22,8 @@ All that is needed is ``meson`` and ``ninja``.
 
 ## Usage
 
-### Flags 
-
-* i - specifies input file
-* h - lists flags
-* v - prints versions
+``bon -h`` will give you usage information.
 
 ## Language
 
-docs coming soon
+``docs/language.md`` is your friend.

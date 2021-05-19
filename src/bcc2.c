@@ -8,6 +8,7 @@
 #include <sys/stat.h>
 #include <sys/types.h>
 
+#include "args.h"
 #include "helper.h"
 #include "ir_gen.h"
 #include "lexer.h"
@@ -16,78 +17,90 @@
 #include "ssa.h"
 #include "platforms.h"
 
-struct {
-  int ast_dump;
-  int ir_dump;
-  int reg_dump;
-  int help;
-  int version;
-  int list_platforms;
-  const char *in_file;
-  Platform *platform;
-} flags;
-
 void
-parse_args(int argc, char *argv[]) {
-  memset(&flags, 0, sizeof(flags));
-  flags.platform = &platform_x86_64_sysv;
-  for (int i = 1; i < argc; i++) {
-    if (argv[i][0] != '-') {
-      if (flags.in_file) {
-        log_err_final("can't specify more than one input file");
-      }
-      flags.in_file = argv[i];
-    } else {
-      flags.ast_dump |= strcmp(argv[i], "-ast") == 0;
-      flags.ir_dump |= strcmp(argv[i], "-ir") == 0;
-      flags.reg_dump |= strcmp(argv[i], "-regs") == 0;
-      flags.help |= strcmp(argv[i], "-h") == 0;
-      flags.version |= strcmp(argv[i], "-v") == 0;
-
-      if (strcmp(argv[i], "-platform") == 0) {
-        if (argc == 2) {
-          flags.list_platforms |= 1;
-        } else if (i + 1 >= argc || argv[i + 1][0] == '-') {
-          log_err_final("expected platform name after -platform");
-        } else {
-          flags.platform = NULL;
-          for (size_t j = 0; platforms[j] != NULL; j++) {
-            if (strcmp(platforms[j]->name, argv[i + 1]) == 0) {
-              flags.platform = platforms[j];
-              i++;
-              break;
-            }
-          }
-          if (flags.platform == NULL) {
-            log_err_final("unknown platform name '%s'", argv[i + 1]);
-          }
-        }
-      }
-    }
-  }
+print_help(const char *program_name, const char *program_description,
+           struct Option *opts[], size_t opts_size) {
+  printf("%s: %s\n", program_name, program_description);
+  printf("Usage: %s [OPTION]... [FILE]\n", program_name);
+  print_flags(opts, opts_size);
 }
+
+struct Option help = {
+    .flag = "h",
+    .description = "prints the help message",
+    .required_arg = ARG_NONE,
+    .type = OPT_BOOLEAN,
+    .long_flag = false,
+};
+struct Option version = {
+    .flag = "v",
+    .description = "prints the version",
+    .required_arg = ARG_NONE,
+    .type = OPT_BOOLEAN,
+    .long_flag = false,
+};
+struct Option ast_dump_flag = {
+    .flag = "dump-ast",
+    .description = "dumps the abstract syntax tree to stdout",
+    .required_arg = ARG_NONE,
+    .type = OPT_BOOLEAN,
+    .long_flag = true,
+};
+struct Option ir_dump_flag = {
+    .flag = "dump-ir",
+    .description = "dumps the intermediate representation to stdout",
+    .required_arg = ARG_NONE,
+    .type = OPT_BOOLEAN,
+    .long_flag = true,
+};
+struct Option reg_dump_flag = {
+    .flag = "dump-reg",
+    .description = "dumps the registers to stdout",
+    .required_arg = ARG_NONE,
+    .type = OPT_BOOLEAN,
+    .long_flag = true,
+};
+struct Option platform_flag = {
+    .flag = "platform",
+    .description = "selects the platform to compile for",
+    .argument_name = "platform_name",
+    .required_arg = ARG_OPTIONAL,
+    .type = OPT_STRING,
+    .long_flag = true,
+};
+struct Option list_platforms = {
+    .flag = "list-platforms",
+    .description = "lists all the platforms supported",
+    .required_arg = ARG_NONE,
+    .type = OPT_BOOLEAN,
+    .long_flag = true,
+};
 
 int
 main(int argc, char *argv[]) {
-  parse_args(argc, argv);
+  struct Option *opts[] = {&help,          &version,       &ast_dump_flag,
+                           &ir_dump_flag,  &reg_dump_flag, &platform_flag,
+                           &list_platforms};
+  size_t number_opts = sizeof(opts) / sizeof(struct Option *);
+  char *in_filename = NULL;
 
-  if (flags.help) {
-    printf("-h : prints help\n"
-           "-v : prints version\n"
-           "-ast : dumps ast to stdout\n"
-           "-ir : dumps ir to stdout\n"
-           "-regs : dumps registers to stdout\n"
-           "-platform : list platforms\n"
-           "-platform <platform> : selects the platform to compile for\n");
-    exit(EXIT_SUCCESS);
+  parse_args(argc, argv, opts, number_opts, &in_filename);
+
+  if (!ir_dump_flag.enabled && reg_dump_flag.enabled) {
+    log_err_final("cannot print registers without printing the IR");
   }
 
-  if (flags.version) {
+  if (help.enabled) {
+    print_help(argv[0], "Take two on compiler for beans.", opts, number_opts);
+    exit(EXIT_SUCCESS);
+  }
+  if (version.enabled) {
     printf("bcc2 : v0.1\n");
     exit(EXIT_SUCCESS);
   }
 
-  if (flags.list_platforms) {
+  if (list_platforms.enabled ||
+      (platform_flag.enabled && platform_flag.out.string == NULL)) {
     printf("available platforms:\n");
     for (size_t i = 0; platforms[i] != NULL; i++) {
       printf(" - %s\n", platforms[i]->name);
@@ -95,29 +108,35 @@ main(int argc, char *argv[]) {
     exit(EXIT_SUCCESS);
   }
 
-  if (!flags.in_file) {
+  Platform *platform __attribute__((unused)) = &platform_x86_64_sysv;
+  if (platform_flag.out.string != NULL) {
+    for (size_t i = 0; platforms[i] != NULL; i++) {
+      if (strcmp(platforms[i]->name, platform_flag.out.string) == 0) {
+        platform = platforms[i];
+        break;
+      }
+    }
+  }
+
+  if (!in_filename) {
     log_err_final("no input file specified");
   }
 
-  if (!flags.ir_dump && flags.reg_dump) {
-    log_err_final("cannot print registers without printing the IR");
-  }
-
-  int in_fd = open(flags.in_file, O_RDONLY);
+  int in_fd = open(in_filename, O_RDONLY);
   if (in_fd == -1) {
-    log_err_final("unable to open '%s'", flags.in_file);
+    log_err_final("unable to open '%s'", in_filename);
   }
 
   struct stat _in_stat;
   if (fstat(in_fd, &_in_stat) == -1) {
-    log_err_final("unable to get stats on '%s'", flags.in_file);
+    log_err_final("unable to get stats on '%s'", in_filename);
   }
   size_t in_size = _in_stat.st_size;
 
   const uint8_t *in_file =
       mmap(NULL, in_size, PROT_READ, MAP_PRIVATE, in_fd, 0);
   if (in_file == MAP_FAILED) {
-    log_err_final("unable to get contents of '%s'", flags.in_file);
+    log_err_final("unable to get contents of '%s'", in_filename);
   }
 
   lexer_init(in_file, in_size);
@@ -127,7 +146,7 @@ main(int argc, char *argv[]) {
   resolve_types(&ast);
   check_returns(&ast);
 
-  if (flags.ast_dump) {
+  if (ast_dump_flag.enabled) {
     printf("AST_DUMP:\n");
     ast_dump(stdout, &ast);
     printf("\n");
@@ -136,9 +155,9 @@ main(int argc, char *argv[]) {
   SSA_Prog ssa_prog;
   translate_ast(&ast, &ssa_prog);
 
-  if (flags.ir_dump) {
+  if (ir_dump_flag.enabled) {
     printf("IR_DUMP:\n");
-    ssa_prog_dump(stdout, &ssa_prog, flags.reg_dump);
+    ssa_prog_dump(stdout, &ssa_prog, reg_dump_flag.enabled);
   }
 
   ast_deinit(&ast);

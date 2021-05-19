@@ -4,6 +4,7 @@ src = [
   'src/helper.c',
   'src/symtable.c',
   'src/ast.c',
+  'src/args.c',
   'src/lexer.c',
   'src/parser.c',
   'src/sem_names.c',

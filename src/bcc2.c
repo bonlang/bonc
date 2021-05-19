@@ -1,7 +1,5 @@
-#include <errno.h>
 #include <fcntl.h>
 #include <getopt.h>
-#include <stdbool.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -68,7 +66,6 @@ main(int argc, char *argv[]) {
   char *in_filename = NULL;
 
   parse_args(argc, argv, opts, number_opts, &in_filename);
-  printf("%s", in_filename);
 
   if (!ir_dump_flag.out.enabled && reg_dump_flag.out.enabled) {
     log_err_final("cannot print registers without printing the IR");

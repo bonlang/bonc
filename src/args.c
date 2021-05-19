@@ -6,6 +6,8 @@
 #include "helper.h"
 #include "args.h"
 
+#define MAX_ARG_LENGTH 20
+
 static bool
 fill_flag_argument(const char *value, struct Option *opt) {
   bool argument_used = false;
@@ -84,11 +86,16 @@ parse_args(int argc, char *argv[], struct Option *opts[], size_t opts_length,
 
 void
 print_flags(struct Option *opts[], size_t opts_length) {
-  for(size_t i = 0; i < opts_length; i++) {
-    printf("%s%s", opts[i]->long_flag ? "--": "-", opts[i]->flag);
-    if(opts[i]->required_arg != ARG_NONE) {
-      printf("%c%s", opts[i]->long_flag ? '=': ' ', opts[i]->argument_name);
+  printf("Flags:\n");
+  for (size_t i = 0; i < opts_length; i++) {
+    printf("  %2s%-*s", opts[i]->long_flag ? "--" : "-",
+           opts[i]->required_arg == ARG_NONE ? MAX_ARG_LENGTH : 0,
+           opts[i]->flag);
+    if (opts[i]->required_arg != ARG_NONE) {
+      printf("%c%-*s", opts[i]->long_flag ? '=' : ' ',
+             (int)(MAX_ARG_LENGTH - strlen(opts[i]->flag) - 1),
+             opts[i]->argument_name);
     }
-    printf("\t%s\n", opts[i]->description);
+    printf("%s\n", opts[i]->description);
   }
 }

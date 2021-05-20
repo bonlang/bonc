@@ -19,10 +19,10 @@
 
 void
 print_help(const char *program_name, const char *program_description,
-           struct Option *opts[], size_t opts_size) {
+           struct Option *opts[]) {
   printf("%s: %s\n", program_name, program_description);
   printf("Usage: %s [OPTION]... [FILE]\n", program_name);
-  print_flags(opts, opts_size);
+  print_flags(opts);
 }
 
 struct Option help = {
@@ -78,20 +78,19 @@ struct Option list_platforms = {
 
 int
 main(int argc, char *argv[]) {
-  struct Option *opts[] = {&help,          &version,       &ast_dump_flag,
-                           &ir_dump_flag,  &reg_dump_flag, &platform_flag,
-                           &list_platforms};
-  size_t number_opts = sizeof(opts) / sizeof(struct Option *);
+  struct Option *opts[] = {
+      &help,          &version,       &ast_dump_flag,  &ir_dump_flag,
+      &reg_dump_flag, &platform_flag, &list_platforms, NULL};
   char *in_filename = NULL;
 
-  parse_args(argc, argv, opts, number_opts, &in_filename);
+  parse_args(argc, argv, opts, &in_filename);
 
   if (!ir_dump_flag.enabled && reg_dump_flag.enabled) {
     log_err_final("cannot print registers without printing the IR");
   }
 
   if (help.enabled) {
-    print_help(argv[0], "Take two on compiler for beans.", opts, number_opts);
+    print_help(argv[0], "Take two on compiler for beans.", opts);
     exit(EXIT_SUCCESS);
   }
   if (version.enabled) {

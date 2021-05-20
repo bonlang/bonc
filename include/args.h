@@ -8,7 +8,7 @@ struct Option {
   const char *description;
   const char *argument_name;
   bool long_flag;
-  
+
   bool enabled;
   enum {
     ARG_NONE,
@@ -28,7 +28,8 @@ struct Option {
   } out;
 };
 
-void parse_args(int argc, char *argv[], struct Option *opts[], size_t opts_size, char **input_file);
-void print_flags(struct Option *opts[], size_t opts_size);
+void parse_args(int argc, char *argv[], struct Option *opts[],
+                char **input_file);
+void print_flags(struct Option *opts[]);
 
 #endif

@@ -33,8 +33,8 @@ fill_flag_argument(const char *value, struct Option *opt) {
 }
 
 static void
-long_flag_parse(const char *flag, struct Option *opts[], size_t opts_length) {
-  for (size_t i = 0; i < opts_length; i++) {
+long_flag_parse(const char *flag, struct Option *opts[]) {
+  for (size_t i = 0; opts[i] != NULL; i++) {
     if (opts[i]->long_flag &&
         !strncmp(flag, opts[i]->flag, strlen(opts[i]->flag))) {
       char *value;
@@ -49,9 +49,8 @@ long_flag_parse(const char *flag, struct Option *opts[], size_t opts_length) {
 }
 
 static int
-short_flag_parse(const char *flag, char *next_argv, struct Option *opts[],
-                 size_t opts_length) {
-  for (size_t i = 0; i < opts_length; i++) {
+short_flag_parse(const char *flag, char *next_argv, struct Option *opts[]) {
+  for (size_t i = 0; opts[i] != NULL; i++) {
     if (!opts[i]->long_flag &&
         !strncmp(flag, opts[i]->flag, strlen(opts[i]->flag))) {
       char *value = next_argv;
@@ -63,16 +62,15 @@ short_flag_parse(const char *flag, char *next_argv, struct Option *opts[],
 }
 
 void
-parse_args(int argc, char *argv[], struct Option *opts[], size_t opts_length,
-           char **input_file) {
+parse_args(int argc, char *argv[], struct Option *opts[], char **input_file) {
   for (int i = 1; i < argc;) {
     if (argv[i][0] == '-') {
       if (argv[i][1] == '-') {
-        long_flag_parse(&argv[i][2], opts, opts_length);
+        long_flag_parse(&argv[i][2], opts);
         i++;
       } else {
         i += short_flag_parse(&argv[i][1], argc - i != 1 ? argv[i + 1] : NULL,
-                              opts, opts_length);
+                              opts);
       }
     } else {
       if (*input_file != NULL) {
@@ -85,9 +83,9 @@ parse_args(int argc, char *argv[], struct Option *opts[], size_t opts_length,
 }
 
 void
-print_flags(struct Option *opts[], size_t opts_length) {
+print_flags(struct Option *opts[]) {
   printf("Flags:\n");
-  for (size_t i = 0; i < opts_length; i++) {
+  for (size_t i = 0; opts[i] != NULL; i++) {
     printf("  %2s%-*s", opts[i]->long_flag ? "--" : "-",
            opts[i]->required_arg == ARG_NONE ? MAX_ARG_LENGTH : 0,
            opts[i]->flag);

@@ -24,7 +24,7 @@ struct Option {
 
   union {
     const char *string;
-    int integer;
+    long integer;
   } out;
 };
 

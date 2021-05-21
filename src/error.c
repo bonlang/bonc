@@ -1,12 +1,33 @@
 #include <error.h>
 #include <stdlib.h>
 
-#include "diags.txt"
+#define KRED "\x1B[31m"
+#define KNRM "\x1B[0m"
+
+static void
+error_output_type(FILE *file, Type *type) {
+  (void)type;
+  fprintf(file, "TYPE_SPEC");
+}
+static void
+error_output_pos(FILE *file, SourcePosition pos) {
+  fprintf(file, "%.*s", (int)pos.sz, (char *)pos.start);
+}
+static void
+error_output_char(FILE *file, uint8_t c) {
+  fprintf(file, "%c", c);
+}
+
 Vector errs; /* Diag */
 const uint8_t *base;
 
+#include "diags.txt"
+
 void
 errors_init(MemPool *pool, const uint8_t *_base) {
+  (void)error_output_type;
+  (void)error_output_char;
+  (void)error_output_pos;
   vector_init(&errs, sizeof(Diag), pool);
   base = _base;
 }
@@ -23,8 +44,9 @@ errors_output(FILE *file) {
   }
   for (size_t i = 0; i < errs.items; i++) {
     Diag *diag = vector_idx(&errs, i);
-    (void)diag;
+    fprintf(file, KRED "error" KNRM ": ");
     diag_output(diag, file);
+    fprintf(file, ".\n");
   }
   fprintf(file, "%ld error%s found. Aborting.\n", errs.items,
           errs.items == 1 ? "" : "s");

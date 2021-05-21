@@ -1,4 +1,1 @@
-expected_expression ERROR "expected expression"
-invalid_type_assign ERROR "cannot assign expression of type " %t " to variable of type " %t
-variable_redeclaration ERROR "cannot redeclare variable " %p " in this scope "
-unexpected_char ERROR "unexpected character " %c
+unexpected_char ERROR "unexpected char '" %c "'"

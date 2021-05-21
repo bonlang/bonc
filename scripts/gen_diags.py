@@ -65,15 +65,15 @@ if sys.argv[1] == 'h':
     header_f.write(union_dec)
     header_f.write('typedef struct {DiagKind t; union DiagData data; SourcePosition range;} Diag; ')
     header_f.write(prototype_dec)
-    header_f.write("void diag_output(Diag *  diag, FILE* file);\n#endif\n")
+    header_f.write("#endif\n")
 
 elif sys.argv[1] == 'c':
+    dump_fn = 'static void diag_output(Diag* diag, FILE * file ) { switch(diag->t) {'
     source_f = open(sys.argv[3], 'w')
-    source_f.write('#include <diags.h>\n' \
-                    'void diag_output(Diag * diag, FILE* file) {\n'\
-                    '(void) diag; fprintf(file, "error\\n");\n'\
-                    '}\n')
+    source_f.write('#include <diags.h>\n')
+                   
     for idx, (k, v) in enumerate(diags.items()): 
+        case_block = 'case DIAG_' + k.strip().upper() + ':\n'
         arg_list = ['SourcePosition range']
         type_cnt = 1
         pos_cnt = 1
@@ -81,21 +81,27 @@ elif sys.argv[1] == 'c':
         for format_spec in v[1]:
             if format_spec.strip() == '%t':
                 arg_list += ['Type *type' + str(type_cnt)]
+                case_block += 'error_output_type(file, diag->data.' + k.strip() + '.type' + str(type_cnt) + ');\n'
                 type_cnt += 1
-            if format_spec.strip() == '%p':
+            elif format_spec.strip() == '%p':
                 arg_list += ['SourcePosition pos' + str(pos_cnt)]
+                case_block += 'error_output_pos(file, diag->data.' + k.strip() + '.pos' + str(pos_cnt) + ');\n'
                 pos_cnt += 1
-            if format_spec.strip() == '%c':
+            elif format_spec.strip() == '%c':
                 arg_list += ['uint8_t c' + str(char_cnt)]
+                case_block += 'error_output_char(file, diag->data.' + k.strip() + '.c' + str(pos_cnt) + ');\n'
                 char_cnt += 1
-        fun_def = 'void log_' + k.strip() + '(' + ','.join(arg_list) + ') {\nDiag ret;\nret.range = range;\n'
+            else:
+                case_block += 'fprintf(file, "' + format_spec + '");\n'
+        case_block += 'break;\n'
+        dump_fn += case_block
+        fun_def = 'void log_' + k.strip() + '(' + ','.join(arg_list) + ') {\nDiag ret;\nret.range = range;\nret.t = DIAG_' + k.strip().upper() + ';\n'
         type_cnt = 1
         pos_cnt = 1
         char_cnt = 1
         for format_spec in v[1]:
             if format_spec.strip() == '%t':
                 fun_def += 'ret.data.' + k + '.type' + str(type_cnt) + ' = type' + str(type_cnt) + ';\n'
-
                 type_cnt += 1
             if format_spec.strip() == '%p':
                 fun_def += 'ret.data.' + k + '.pos' + str(pos_cnt) + ' = pos' + str(pos_cnt) + ';\n'
@@ -105,3 +111,5 @@ elif sys.argv[1] == 'c':
                 char_cnt += 1
         fun_def += 'errors_log(ret);\n}\n'
         source_f.write(fun_def)
+    dump_fn += '}\n}\n'
+    source_f.write(dump_fn)

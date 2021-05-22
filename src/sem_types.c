@@ -1,4 +1,5 @@
 #include "semantics.h"
+#include "error.h"
 
 Type *
 coerce_type(int op, Type **_left, Type **_right, MemPool *pool) {
@@ -52,23 +53,19 @@ resolve_expr(Expr *expr, AST *ast, MemPool *pool) {
           coerce_type(expr->data.binop.op, &expr->data.binop.left->type,
                       &expr->data.binop.right->type, pool);
       if (expr->type == NULL) {
-        log_source_err("cannot coerce types", ast->src_base, expr->pos);
+        log_incorrect_type_binop(expr->pos, expr->data.binop.left->type,
+                                 expr->data.binop.right->type);
       }
       break;
     case EXPR_FUNCALL:
       {
         Type *fn_type = expr->data.funcall.fn->inf.type;
         if (fn_type->t != TYPE_FN) {
-          log_source_err("cannot call a non-function value", ast->src_base,
-                         expr->pos);
+          log_incorrect_type_funcall(expr->pos, fn_type);
         }
         if (fn_type->data.fn.args.items != expr->data.funcall.args.items) {
-          log_source_err("too %s parameters given in function call",
-                         ast->src_base, expr->pos,
-                         fn_type->data.fn.args.items >
-                                 expr->data.funcall.args.items
-                             ? "few"
-                             : "many");
+          log_wrong_param_count(expr->pos, fn_type->data.fn.args.items,
+                                expr->data.funcall.args.items);
         }
         for (size_t i = 0; i < fn_type->data.fn.args.items; i++) {
           Type **expected = vector_idx(&fn_type->data.fn.args, i);
@@ -76,8 +73,7 @@ resolve_expr(Expr *expr, AST *ast, MemPool *pool) {
           resolve_expr(temp_expr, ast, pool);
           Type **given = &temp_expr->type;
           if (coerce_type(BINOP_ASSIGN, expected, given, pool) == NULL) {
-            log_source_err("cannot coerce parameter", ast->src_base,
-                           temp_expr->pos);
+            log_incorrect_type_param(temp_expr->pos, *given, *expected);
           }
         }
         expr->type = fn_type->data.fn.ret;
@@ -105,8 +101,9 @@ resolve_fn(AST *ast, Function *fn) {
           } else if (coerce_type(BINOP_ASSIGN, &temp_stmt->data.let.value->type,
                                  &temp_stmt->data.let.type,
                                  &ast->pool) == NULL) {
-            log_source_err("cannot coerce assignment", ast->src_base,
-                           temp_stmt->pos);
+            log_incorrect_type_assign(temp_stmt->pos,
+                                      temp_stmt->data.let.value->type,
+                                      temp_stmt->data.let.type);
           }
         }
         break;

@@ -17,6 +17,10 @@ static void
 error_output_char(FILE *file, uint8_t c) {
   fprintf(file, "%c", c);
 }
+static void
+error_output_int(FILE *file, int i) {
+  fprintf(file, "%d", i);
+}
 
 Vector errs; /* Diag */
 const uint8_t *base;
@@ -28,6 +32,7 @@ errors_init(MemPool *pool, const uint8_t *_base) {
   (void)error_output_type;
   (void)error_output_char;
   (void)error_output_pos;
+  (void)error_output_int;
   vector_init(&errs, sizeof(Diag), pool);
   base = _base;
 }
@@ -56,4 +61,7 @@ errors_output(FILE *file) {
 void
 errors_log(Diag diag) {
   vector_push(&errs, &diag);
+  /* this is 100% temporary and will be removed when the error handling system
+   * is designed to handle multiple errors */
+  errors_output(stdout);
 }

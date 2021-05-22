@@ -31,6 +31,7 @@ if sys.argv[1] == 'h':
         type_cnt = 1
         pos_cnt = 1
         char_cnt = 1
+        int_cnt = 1
         temp_struct = 'struct {\n'
         has_members = False
         for format_spec in v[1]: 
@@ -39,6 +40,11 @@ if sys.argv[1] == 'h':
                 temp_struct += 'Type *type' + str(type_cnt) + ';\n'
                 has_members = True
                 type_cnt += 1
+            if format_spec.strip() == '%d':
+                arg_list += ['int i' + str(int_cnt)]
+                temp_struct += 'int i' + str(int_cnt) + ';\n'
+                has_members = True
+                int_cnt += 1
             elif format_spec.strip() == '%p':
                 arg_list += ['SourcePosition pos' + str(pos_cnt)]
                 temp_struct += 'SourcePosition pos' + str(pos_cnt) + ';\n'
@@ -78,6 +84,7 @@ elif sys.argv[1] == 'c':
         type_cnt = 1
         pos_cnt = 1
         char_cnt = 1
+        int_cnt = 1
         for format_spec in v[1]:
             if format_spec.strip() == '%t':
                 arg_list += ['Type *type' + str(type_cnt)]
@@ -89,8 +96,12 @@ elif sys.argv[1] == 'c':
                 pos_cnt += 1
             elif format_spec.strip() == '%c':
                 arg_list += ['uint8_t c' + str(char_cnt)]
-                case_block += 'error_output_char(file, diag->data.' + k.strip() + '.c' + str(pos_cnt) + ');\n'
+                case_block += 'error_output_char(file, diag->data.' + k.strip() + '.c' + str(char_cnt) + ');\n'
                 char_cnt += 1
+            elif format_spec.strip() == '%d':
+                arg_list += ['int i' + str(int_cnt)]
+                case_block += 'error_output_int(file, diag->data.' + k.strip() + '.i' + str(int_cnt) + ');\n'
+                int_cnt += 1
             else:
                 case_block += 'fprintf(file, "' + format_spec + '");\n'
         case_block += 'break;\n'
@@ -99,6 +110,7 @@ elif sys.argv[1] == 'c':
         type_cnt = 1
         pos_cnt = 1
         char_cnt = 1
+        int_cnt = 1
         for format_spec in v[1]:
             if format_spec.strip() == '%t':
                 fun_def += 'ret.data.' + k + '.type' + str(type_cnt) + ' = type' + str(type_cnt) + ';\n'
@@ -109,6 +121,9 @@ elif sys.argv[1] == 'c':
             if format_spec.strip() == '%c':
                 fun_def += 'ret.data.' + k + '.c' + str(char_cnt) + ' = c' + str(char_cnt) + ';\n'
                 char_cnt += 1
+            if format_spec.strip() == '%d':
+                fun_def += 'ret.data.' + k + '.i' + str(int_cnt) + ' = i' + str(int_cnt) + ';\n'
+                int_cnt += 1
         fun_def += 'errors_log(ret);\n}\n'
         source_f.write(fun_def)
     dump_fn += '}\n}\n'

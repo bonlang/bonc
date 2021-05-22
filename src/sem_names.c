@@ -1,4 +1,5 @@
 #include "semantics.h"
+#include "error.h"
 
 static void
 resolve_expr(AST *ast, Scope *scope, Expr *expr) {
@@ -11,8 +12,7 @@ resolve_expr(AST *ast, Scope *scope, Expr *expr) {
       {
         ScopeEntry *entry = scope_find(scope, expr->pos);
         if (entry == NULL) {
-          log_source_err("cannot find variable '%.*s'", ast->src_base,
-                         expr->pos);
+          log_name_not_in_scope(expr->pos, expr->pos);
         }
         expr->data.var = entry;
       }
@@ -21,10 +21,7 @@ resolve_expr(AST *ast, Scope *scope, Expr *expr) {
       {
         ScopeEntry *entry = scope_find(scope, expr->data.funcall.name);
         if (entry == NULL) {
-          log_source_err("cannot find function '%.*s'", ast->src_base,
-                         expr->data.funcall.name,
-                         (int)expr->data.funcall.name.sz,
-                         (char *)expr->data.funcall.name.start);
+          log_name_not_in_scope(expr->pos, expr->data.funcall.name);
         }
         for (size_t i = 0; i < expr->data.funcall.args.items; i++) {
           Expr *temp_expr = *((Expr **)vector_idx(&expr->data.funcall.args, i));
@@ -49,9 +46,7 @@ resolve_stmt(AST *ast, Stmt *stmt, Scope *scope) {
             &ast->pool, scope, stmt->data.let.name,
             make_var_info(stmt->data.let.mut, stmt->data.let.type));
         if (entry == NULL) {
-          log_source_err("cannot redeclare variable '%.*s'", ast->src_base,
-                         stmt->pos, (int)stmt->data.let.name.sz,
-                         (char *)stmt->data.let.name.start);
+          log_name_redeclaration(stmt->pos, stmt->data.let.name);
         }
         stmt->data.let.var = entry;
         if (stmt->data.let.value) {
@@ -92,8 +87,7 @@ resolve_names(AST *ast) {
     fn->entry =
         scope_insert(&ast->pool, ast->global, fn->name, make_var_info(0, NULL));
     if (!fn->entry) {
-      log_source_err("cannot redeclare function '%.*s'", ast->src_base, fn->pos,
-                     (int)fn->name.sz, (char *)fn->name.start);
+      log_name_redeclaration(fn->pos, fn->name);
     }
   }
   for (size_t i = 0; i < ast->fns.items; i++) {

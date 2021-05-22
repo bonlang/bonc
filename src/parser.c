@@ -2,6 +2,7 @@
 
 #include <stdlib.h>
 
+#include "error.h"
 #include "ast.h"
 #include "lexer.h"
 
@@ -13,15 +14,6 @@ make_expr(AST *ast, int t, SourcePosition pos) {
   ret->t = t;
   ret->pos = pos;
   ret->type = NULL;
-  return ret;
-}
-
-static Token
-expect(TokKind t, const char *err_msg) {
-  Token ret = lexer_next();
-  if (ret.t != t) {
-    log_source_err(err_msg, src_base, ret.pos);
-  }
   return ret;
 }
 
@@ -48,8 +40,7 @@ make_intlit_expr(AST *ast, SourcePosition whole_pos, int t) {
   whole_pos.sz -= intlit_pos_sz[t];
   if (pos_to_num(whole_pos, &ret->data.intlit.val)) {
     whole_pos.sz += intlit_pos_sz[t];
-    log_source_err("overflow on '%.*s'", ast->src_base, whole_pos,
-                   (int)whole_pos.sz, (char *)whole_pos.start);
+    log_intlit_overflow(whole_pos, whole_pos);
   }
   ret->data.intlit.type = t;
   return ret;
@@ -68,7 +59,10 @@ parse_funcall(AST *ast, Token name_tok) {
     }
     lexer_next();
   }
-  Token last_paren = expect(TOK_RPAREN, "expected ')'");
+  Token last_paren = lexer_next();
+  if (last_paren.t != TOK_RPAREN) {
+    log_expected_closing_paren(last_paren.pos);
+  }
   Expr *ret =
       make_expr(ast, EXPR_FUNCALL, combine_pos(name_tok.pos, last_paren.pos));
   ret->data.funcall.args = args;
@@ -90,12 +84,17 @@ parse_primary(AST *ast) {
     case TOK_LPAREN:
       {
         Expr *ret = parse_expr(ast);
-        expect(TOK_RPAREN, "expected ')'");
+        Token _closing_paren = lexer_next();
+        if (_closing_paren.t != TOK_RPAREN) {
+          log_expected_closing_paren(_closing_paren.pos);
+        }
         return ret;
       }
     default:
-      log_source_err("expected expression", src_base, tok.pos);
-      return NULL; /* unreachable */
+      {
+        log_expected_expression(tok.pos);
+        return NULL; /* unreachable */
+      }
   }
 }
 
@@ -211,7 +210,7 @@ parse_type(AST *ast) {
     case TOK_BOOL:
       return &bool_const;
     default:
-      log_source_err("expected type name", src_base, type_tok.pos);
+      log_expected_type(type_tok.pos);
       return NULL;
   }
 }
@@ -220,28 +219,37 @@ static void
 parse_let(AST *ast, Stmt *stmt, int mut) {
   Token first_tok = lexer_next();
   stmt->t = STMT_LET;
-  Token var_name = expect(TOK_SYM, "expected variable name");
+  Token var_name = lexer_next();
+  if (var_name.t != TOK_SYM) {
+    log_expected_name(var_name.pos);
+  }
 
   Token last_tok;
   Token middle_tok = lexer_next();
   if (middle_tok.t == TOK_EQ) {
     stmt->data.let.value = parse_expr(ast);
     stmt->data.let.type = NULL;
-    last_tok = expect(TOK_NEWLINE, "expected newline or ';'");
+    last_tok = lexer_next();
+    if (last_tok.t != TOK_NEWLINE) {
+      log_expected_newline(last_tok.pos);
+    }
   } else if (middle_tok.t == TOK_COLON) {
     stmt->data.let.type = parse_type(ast);
     Token equal_tok = lexer_next();
     if (equal_tok.t == TOK_EQ) {
       stmt->data.let.value = parse_expr(ast);
-      last_tok = expect(TOK_NEWLINE, "expected newline or ';'");
+      last_tok = lexer_next();
+      if (last_tok.t != TOK_NEWLINE) {
+        log_expected_newline(last_tok.pos);
+      }
     } else if (equal_tok.t == TOK_NEWLINE) {
       last_tok = equal_tok;
       stmt->data.let.value = NULL;
     } else {
-      log_source_err("expected '=' or ';'", src_base, equal_tok.pos);
+      log_expected_equals(equal_tok.pos);
     }
   } else {
-    log_source_err("expected '=' or ':'", src_base, middle_tok.pos);
+    log_expected_equals(middle_tok.pos);
   }
 
   stmt->pos = combine_pos(first_tok.pos, last_tok.pos);
@@ -253,7 +261,10 @@ static void
 parse_expr_stmt(AST *ast, Stmt *stmt) {
   stmt->t = STMT_EXPR;
   stmt->data.expr = parse_expr(ast);
-  expect(TOK_NEWLINE, "expected newline or ';'");
+  Token _newline = lexer_next();
+  if (_newline.t != TOK_NEWLINE) {
+    log_expected_newline(_newline.pos);
+  }
 }
 
 static void
@@ -265,7 +276,10 @@ parse_return(AST *ast, Stmt *stmt) {
     stmt->data.ret = NULL;
   } else {
     stmt->data.ret = parse_expr(ast);
-    expect(TOK_NEWLINE, "expected newline or ';'");
+    Token _newline = lexer_next();
+    if (_newline.t != TOK_NEWLINE) {
+      log_expected_newline(_newline.pos);
+    }
   }
 }
 
@@ -297,16 +311,26 @@ parse_block(Block *block, AST *ast) {
 
 void
 parse_fn(AST *ast, Function *function) {
-  Token name_tok = expect(TOK_SYM, "expected function name");
+  Token name_tok = lexer_next();
+  if (name_tok.t != TOK_SYM) {
+    log_expected_name(name_tok.pos);
+  }
   function->name = name_tok.pos;
   function->pos = name_tok.pos;
 
-  expect(TOK_LPAREN, "expected '('");
+  Token _lparen = lexer_next();
+  if (_lparen.t != TOK_LPAREN) {
+    log_expected_opening_paren(_lparen.pos);
+  }
+
   vector_init(&function->params, sizeof(Param), &ast->pool);
 
   while (lexer_peek().t != TOK_RPAREN) {
     Param *param = vector_alloc(&function->params);
-    Token name_tok = expect(TOK_SYM, "expected param name");
+    Token name_tok = lexer_next();
+    if (name_tok.t != TOK_SYM) {
+      log_expected_name(name_tok.pos);
+    }
     param->name = name_tok.pos;
 
     param->type = parse_type(ast);

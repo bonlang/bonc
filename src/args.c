@@ -1,0 +1,120 @@
+#include <errno.h>
+#include <stdbool.h>
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#include "helper.h"
+#include "args.h"
+
+#define MAX_ARG_LENGTH 30
+
+static long
+parse_long(const char *string) {
+  char *endptr;
+  errno = 0;
+  long value = strtol(string, &endptr, 10);
+  if (*endptr != '\0') {
+    log_err_final("'%s' is not a valid integer", string);
+  } else if (errno == ERANGE) {
+    log_err_final("'%s' causes an integer overflow", string);
+  }
+  return value;
+}
+
+static bool
+fill_flag_argument(const char *value, struct Option *opt) {
+  bool argument_used = false;
+  if (opt->required_arg == ARG_NONE && value != NULL) {
+    log_err_final("option '%s' doesn't allow an argument", opt->flag);
+  } else if (opt->required_arg == ARG_REQUIRED && value == NULL) {
+    log_err_final("option '%s' requires an argument", opt->flag);
+  }
+  opt->enabled = true;
+  switch (opt->type) {
+    case OPT_BOOLEAN:
+      break;
+    case OPT_STRING:
+      opt->out.string = value;
+      argument_used = true;
+      break;
+    case OPT_INT:
+      opt->out.integer = parse_long(value);
+      argument_used = true;
+      break;
+  }
+  return argument_used;
+}
+
+static void
+long_flag_parse(const char *flag, struct Option *opts[]) {
+  char *value;
+  size_t flag_length;
+
+  if ((value = strchr(flag, '=')) != NULL) {
+    flag_length = value - flag;
+    value++;
+  } else {
+    flag_length = strlen(flag);
+  }
+
+  for (size_t i = 0; opts[i] != NULL; i++) {
+    if (opts[i]->long_flag && !strncmp(flag, opts[i]->flag, flag_length)) {
+      fill_flag_argument(value, opts[i]);
+      return;
+    }
+  }
+  log_err_final("unrecognized option '--%s'", flag);
+}
+
+static int
+short_flag_parse(const char *flag, char *next_argv, struct Option *opts[]) {
+  for (size_t i = 0; opts[i] != NULL; i++) {
+    if (!opts[i]->long_flag && !strcmp(flag, opts[i]->flag)) {
+      char *value = next_argv;
+      return fill_flag_argument(value, opts[i]) + 1;
+    }
+  }
+  log_err_final("unrecognized option '-%s'", flag);
+  return 0; // unreachable, just to stop a warning
+}
+
+void
+parse_args(int argc, char *argv[], struct Option *opts[], char **input_file) {
+  for (int i = 1; i < argc;) {
+    if (!strcmp(argv[i], "-") || strlen(argv[i]) == 0) {
+      log_err_final("invalid argument '%s'", argv[i]);
+    }
+    if (argv[i][0] == '-') {
+      if (argv[i][1] == '-') {
+        long_flag_parse(&argv[i][2], opts);
+        i++;
+      } else {
+        i += short_flag_parse(&argv[i][1], argc - i != 1 ? argv[i + 1] : NULL,
+                              opts);
+      }
+    } else {
+      if (*input_file != NULL) {
+        log_err_final("can't specify more than one input file");
+      }
+      *input_file = argv[i];
+      i++;
+    }
+  }
+}
+
+void
+print_flags(struct Option *opts[]) {
+  printf("Flags:\n");
+  for (size_t i = 0; opts[i] != NULL; i++) {
+    printf("  %2s%-*s", opts[i]->long_flag ? "--" : "-",
+           opts[i]->required_arg == ARG_NONE ? MAX_ARG_LENGTH : 0,
+           opts[i]->flag);
+    if (opts[i]->required_arg != ARG_NONE) {
+      printf("%c%-*s", opts[i]->long_flag ? '=' : ' ',
+             (int)(MAX_ARG_LENGTH - strlen(opts[i]->flag) - 1),
+             opts[i]->argument_name);
+    }
+    printf("%s\n", opts[i]->description);
+  }
+}

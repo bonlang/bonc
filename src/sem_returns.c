@@ -57,7 +57,7 @@ check_returns(AST *ast) {
         log_never_returns(fn->pos);
         break;
       case RETURN_WRONG:
-        log_incorrect_return(wrong_stmt->pos, fn->ret_type, wrong_type);
+        log_incorrect_return(wrong_stmt->pos, wrong_type, fn->ret_type);
         break;
     }
   }

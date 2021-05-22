@@ -17,15 +17,12 @@
 
 SourcePosition
 combine_pos(SourcePosition pos1, SourcePosition pos2) {
-  SourcePosition ret;
-  ret.start = pos1.start;
-  ret.sz = (pos2.start - pos1.start) + pos2.sz;
-  return ret;
+  return make_pos(pos1.start, (pos2.start - pos1.start) + pos2.sz, pos1.line);
 }
 
 SourcePosition
-make_pos(const uint8_t *buf, size_t sz) {
-  SourcePosition ret = {.start = buf, .sz = sz};
+make_pos(const uint8_t *buf, size_t sz, size_t line) {
+  SourcePosition ret = {.start = buf, .sz = sz, .line = line};
   return ret;
 }
 

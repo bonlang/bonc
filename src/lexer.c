@@ -10,6 +10,7 @@
 struct {
   const uint8_t *buf;
   size_t sz;
+  size_t line;
 
   size_t end;
   size_t start;
@@ -23,6 +24,7 @@ void
 lexer_init(const uint8_t *buf, size_t sz) {
   lex.buf = buf;
   lex.sz = sz;
+  lex.line = 1;
 
   lex.end = lex.start = 0;
 
@@ -37,8 +39,7 @@ cur_len() {
 static Token
 make_token(int t) {
   Token ret;
-  ret.pos.start = lex.buf + lex.start;
-  ret.pos.sz = cur_len();
+  ret.pos = make_pos(lex.buf + lex.start, cur_len(), lex.line);
   ret.t = t;
   lex.start = lex.end; /* reset lexer */
   return ret;
@@ -80,9 +81,13 @@ skip_whitespace() {
   while (!is_eof() && is_whitespace(peek_c())) {
     if ((c = peek_c()) == '\t' || c == ' ') {
       next_c();
-    } else if (c == '\n' && needs_newline()) {
-      lex.start = lex.end;
-      return 1;
+    } else if (c == '\n') {
+      lex.line++;
+      next_c();
+      if (needs_newline()) {
+        lex.start = lex.end;
+        return 1;
+      }
     } else {
       next_c();
     }
@@ -277,7 +282,8 @@ lexer_fetch() {
     case ',':
       return make_token(TOK_COMMA);
     default:
-      log_unexpected_char(make_pos(lex.buf + lex.start, cur_len()), c);
+      log_unexpected_char(make_pos(lex.buf + lex.start, cur_len(), lex.line),
+                          c);
       return lexer_fetch();
   }
   return make_token(TOK_EOF); /* unreachable */

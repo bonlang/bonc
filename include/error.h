@@ -6,7 +6,7 @@
 #include <diags.h>
 
 bool errors_exist();
-void errors_init(MemPool *pool, const uint8_t *base);
+void errors_init(MemPool *pool, const uint8_t *base, const char *filename);
 
 /* returns if no errors, otherwise prints them to file and exits with a
  * non-zero error code */

@@ -7,10 +7,11 @@
 typedef struct {
   const uint8_t *start;
   size_t sz;
+  size_t line;
 } SourcePosition;
 
 SourcePosition combine_pos(SourcePosition pos1, SourcePosition pos2);
-SourcePosition make_pos(const uint8_t *buf, size_t sz);
+SourcePosition make_pos(const uint8_t *buf, size_t sz, size_t line);
 
 int64_t next_vn();
 

@@ -49,17 +49,19 @@ error_output_int(FILE *file, int i) {
 
 Vector errs; /* Diag */
 const uint8_t *base;
+const char *filename;
 
 #include "diags.txt"
 
 void
-errors_init(MemPool *pool, const uint8_t *_base) {
+errors_init(MemPool *pool, const uint8_t *_base, const char *_filename) {
   (void)error_output_type;
   (void)error_output_char;
   (void)error_output_pos;
   (void)error_output_int;
   vector_init(&errs, sizeof(Diag), pool);
   base = _base;
+  filename = _filename;
 }
 
 bool
@@ -74,7 +76,8 @@ errors_output(FILE *file) {
   }
   for (size_t i = 0; i < errs.items; i++) {
     Diag *diag = vector_idx(&errs, i);
-    fprintf(file, KRED "error" KNRM ": ");
+    fprintf(file, "%s:%zu: " KRED "error:" KNRM " ", filename,
+            diag->range.line);
     diag_output(diag, file);
     fprintf(file, ".\n");
   }

@@ -123,7 +123,7 @@ main(int argc, char *argv[]) {
 
   MemPool pool;
   mempool_init(&pool);
-  errors_init(&pool, in_file);
+  errors_init(&pool, in_file, flags.in_file);
 
   lexer_init(in_file, in_size);
 

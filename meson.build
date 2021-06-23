@@ -1,4 +1,4 @@
-project('bcc2', 'c')
+project('bonc', 'c')
 
 src = [
   'src/helper.c',
@@ -12,7 +12,7 @@ src = [
   'src/sem_returns.c',
   'src/ssa.c',
   'src/ir_gen.c',
-  'src/bcc2.c',
+  'src/bonc.c',
 
   'src/platforms/platforms.c',
   'src/platforms/x86_64/architecture.c',
@@ -21,8 +21,8 @@ src = [
 
 inc = include_directories('include')
 
-bcc2 = executable(
-  'bcc2',
+bonc = executable(
+  'bonc',
   src,
   c_args : ['-Wextra', '-Werror', '-g', '-std=c99', '-pedantic'],
   include_directories : [inc]

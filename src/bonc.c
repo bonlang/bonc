@@ -90,11 +90,11 @@ main(int argc, char *argv[]) {
   }
 
   if (help.enabled) {
-    print_help(argv[0], "Take two on compiler for beans.", opts);
+    print_help(argv[0], "The compiler for the Bon language.", opts);
     exit(EXIT_SUCCESS);
   }
   if (version.enabled) {
-    printf("bcc2 : v0.1\n");
+    printf("bonc : v0.1\n");
     exit(EXIT_SUCCESS);
   }
 

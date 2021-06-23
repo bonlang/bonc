@@ -1,28 +1,57 @@
-# bonc
-
-A compiler for the Bon programming language.
+<div align="center">
+	<h1>bonc</h1>
+	<blockquote>
+    👌 the compiler for the Bon programming language
+	</blockquote>
+  <p align="center">
+		<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-blue.svg"></a>
+	</p>
+</div>
 
 ## About 
 
 ### Note: This project is extremely WIP, like no executables being produced WIP
 
-Bon is a work in progress statically typed, compiled programming language with (WIP) backends for x86 and RISC-V.
+Bon is a statically typed, functional, compiled programming language with (WIP) backends for x86 and RISC-V.
 
 ## Building
 
 The Bon compiler uses ``meson`` for its build system, so the build tool ``ninja`` is required as well.
 
-``mkdir build``
+Clone the repository and enter it.
+```
+git clone https://github.com/bonlang/bonc
+```
 
-``meson setup build``
+```
+cd bonc
+```
 
-``cd build``
+Initialize the build folder with Meson and enter it.
+```
+mkdir build
+```
 
-``ninja``
+```
+meson setup build
+```
 
+```
+cd build
+```
+
+Build the project.
+```
+ninja
+```
+
+The executable will be placed in the directory you ran ``ninja`` and will be called ``bonc``.
 ## Usage
 
-``bon -h`` will give you usage information.
+```
+bon -h
+``` 
+will give you usage information.
 
 ## Language
 

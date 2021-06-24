@@ -1,87 +1,64 @@
-# Beans Language
+# Bon Language
 
-A beans program is made up of a series of functions, the order of these functions does not matter and they can be referenced before being called.
+A bon program is made up of top level declarations.  The order of these is not critical as names can be used before their declaration.
 
 ## Basics
 
-* A symbol is an ASCII string starting with a letter from A-Z and then followed by letters, numbers, or an underscore.
+* A symbol is an ASCII string (no Unicode) starting with an upper or lowercase letter in the alphabet which can then be followed by letters, numbers or underscores.
 
 ## Types
 
-There are several builtin types. 
-* void 		 - represents a lack of a value
-* i8/i16/i32/i64 - signed integer types with the specified number of bits
-* u8/u16/u32/u64 - unsigned integer types with the specified number of bits
-* bool 		 - either ``true`` or ``false``
+### Builtin
 
-User defined types are not implemented, and the design is still changing.
+* Int      - integer numbers (63 or 62 bits)
+* Real     - IEEE 64 bit floating point number
+* Bool     - either ``true`` or ```false```
+* Char     - Unicode code point
+* Byte     - 8 bits (or an ASCII char)
 
-## Functions
+### User Defined
 
-A function has several parts.
-* A name - a symbol
-* A list of parameters wrapped in parenthesis where a parameter is a symbol followed by a type
-* An optional return type after the parameters, if omitted the return type is void
-* A block of statements wrapped in curly braces.
+**not implemented**
+
+## Toplevel declarations
+
+A toplevel declaration has several parts
+* A name (can also be _ if just the side effect is wanted)
+* A list of names to be introduced into the functions scope
+* A expression defining the value of the toplevel
 
 ### Examples (actual code omitted): 
 
 ```
-add2(v1 i32, v2 i32) i32 {}
+myFun myVars = myExpr
 ```
-
 ```
-main() {}
-```
-
-## Statements
-
-A statement makes up functions, but beans has most language features as expressions so they can be composed in powerful ways. However there are still a couple features that are only represented as statements.
-
-* Let        - introduces a new name into the current local scope, optionally giving it an initial value
-* Return     - returns from the current function, optionally with a value
-* Expression - just an expression which is computed, and the result is discarded
-
-Statements can either be terminated with a semicolon (;) or with a newline.  The general style is to always use a newline unless several statements are to be placed on the same line, which should very rarely be done.
-
-### Examples (expressions are omitted)
-
-```
-let my_var = <expression>
-<expression>
-return my_var
+_ = mySideEffect
 ```
 
 ## Expressions
 
-Most of the beans language is represented as expressions, so there are going to be many possible types of expressions.
+The Bon language is made of expressions, even purely effectful computions are considered expressions, just with a Unit return type.
 
-* Integers - A single integer literal optionally terminated with the name of one of the integer types to specify what size it is
-* Booleans - ``true`` or ``false``
-* Variable - The value of a variable in the local scope
+### Atomic expressions
+
+* Integer literals  - ``123`` or ``-123``
+* Boolean values - ``true`` or ``false``
+* Real values - ``1.23``, ``1e12``, ``-0.12``
+* Variable - Refers to the current value in the current lexical scope
+
+### Compound
+
 * Binary expressions - addition, subtraction, multiplication, division, equality, inequality, comparisons 
-* Function calls 
-
-```
-3
-3u32
-my_var
-3 + my_var
-3 != (my_var * 4)
-add2(my_var, 4) != 10
-```
-
+* Function calls  - Expressions seperated by spaces. Ex: (myFun 3 true)
 
 ### Full Examples
 
 ```
-main() {
-	let a = 3i32
-	let sum = add2(a, 3 + 5)
-	sum
-}
+myConst = 3
+addConst val = val + myConst
 
-add2(v1 i32, v2 i32) i32 {
-	return v1 + v2
-}
+addTwoConst val1 val2 = (addConst val1) + (addConst val2)
+
+_ = print_num (addTwoConst 10 15)
 ```

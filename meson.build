@@ -1,4 +1,4 @@
-project('bcc2', 'c')
+project('bonc', 'c')
 
 src = [
   'src/helper.c',
@@ -13,7 +13,7 @@ src = [
   'src/sem_returns.c',
   'src/ssa.c',
   'src/ir_gen.c',
-  'src/bcc2.c',
+  'src/bonc.c',
 
   'src/platforms/platforms.c',
   'src/platforms/x86_64/architecture.c',
@@ -36,8 +36,8 @@ diag_txt = custom_target(
   input : 'scripts/diag_table.txt',
   command : [diag_gen, 'c', '@INPUT@', '@OUTPUT@'])
 
-bcc2 = executable(
-  'bcc2',
+bonc = executable(
+  'bonc',
   [src, diag_h, diag_txt],
   c_args : ['-Wextra', '-Werror', '-g', '-std=c99', '-pedantic'],
   include_directories : [inc],
